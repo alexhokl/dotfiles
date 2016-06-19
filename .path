@@ -1,13 +1,12 @@
 #!/bin/sh
 
 # go path
-export GOPATH="${HOME}/git"
+export GOPATH="${HOME}/Desktop/git"
 export GOBIN="${GOPATH}/bin"
 
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin:/usr/local/sbin
-export PATH=${PATH}:$HOME/.rbenv/bin
-export PATH=${PATH}:$HOME/.rbenv/versions/3.0.1/bin
+export PATH=/usr/local/opt/ruby/bin:${PATH}
 export PATH=${PATH}:$HOME/.local/bin
 export PATH=${PATH}:/opt/mssql-tools/bin
 export PATH=${PATH}:$GOPATH/flutter/bin
@@ -15,6 +14,7 @@ export PATH=${PATH}:$GOPATH/flutter/bin/cache/dart-sdk/bin
 export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:$HOME/.krew/bin
 export PATH=${PATH}:$HOME/.cargo/bin
+export PATH=${PATH}:/usr/local/opt/gnu-sed/libexec/gnubin
 
 # add go path
 export PATH="/usr/local/go/bin:${GOPATH}/bin:${PATH}"

@@ -239,6 +239,7 @@
 
 [include]
 	path = ~/.gitconfig_linux
+	path = ~/.gitconfig_mac
 
 [includeIf "gitdir:~/git/work/"]
 	path = ~/git/work/.gitconfig

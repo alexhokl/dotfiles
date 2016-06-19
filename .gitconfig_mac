@@ -1,0 +1,2 @@
+[difftool "kdiff3"]
+    path = $HOME/Applications/kdiff3.app/Contents/MacOS/kdiff3

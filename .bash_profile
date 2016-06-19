@@ -6,3 +6,5 @@ if [[ -r "${HOME}/.bashrc" ]]; then
 	source "${HOME}/.bashrc"
 fi
 
+
+. $(brew --prefix bash-completion)/etc/bash_completion

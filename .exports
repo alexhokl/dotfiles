@@ -5,7 +5,7 @@ shell="$(which bash)";
 export SHELL="$shell";
 
 # Make vim the default editor
-export EDITOR=/usr/bin/vim;
+export EDITOR=/usr/local/bin/nvim;
 export TERMINAL="urxvt";
 
 # Larger bash history (allow 32³ entries; default is 500)
@@ -32,6 +32,9 @@ export TODOTXT_DEFAULT_ACTION=ls
 #export GDK_SCALE=1.5
 #export GDK_DPI_SCALE=0.5
 #export QT_DEVICE_PIXEL_RATIO=1.5
+
+# XQuartz for Mac
+export DISPLAY_MAC=`ifconfig en0 | grep "inet " | cut -d " " -f2`:0
 
 # turn on go vendoring experiment
 export GO15VENDOREXPERIMENT=1
