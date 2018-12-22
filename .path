@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # go path
-export GOPATH="${HOME}/git"
+export GOPATH=$HOME/Desktop/git
 
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin

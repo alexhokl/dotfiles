@@ -1,0 +1,15 @@
+[core]
+	editor = nvim
+  autocrlf = true
+
+[user]
+  signingkey = EE510D8CB9F12960
+
+[commit]
+  gpgsign = false
+
+[gpg]
+  program = gpg2
+
+[credential]
+	helper = manager

@@ -215,4 +215,4 @@
 	followRedirects = true
 
 [include]
-	path = ~/.gitconfig_linux
+	path = ~/.gitconfig_windows
