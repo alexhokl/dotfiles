@@ -238,7 +238,7 @@
 	followRedirects = true
 
 [include]
-	path = ~/.gitconfig_linux
+	path = ~/.gitconfig_windows
 
 [includeIf "gitdir:~/git/work/"]
 	path = ~/git/work/.gitconfig
