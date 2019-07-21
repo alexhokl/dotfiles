@@ -11,6 +11,18 @@ elif infocmp xterm-256color >/dev/null 2>&1; then
 	export TERM='xterm-256color';
 fi;
 
+
+prompt_kube() {
+	if [ ! -f $HOME/.kube/config ]; then
+		return;
+	fi
+	contextName=$(kubectl config view -o=jsonpath='{.current-context}')
+	namespace="$(kubectl config view -o=jsonpath="{.contexts[?(@.name==\"${contextName}\")].context.namespace}")" \
+     || exit_err "error getting current namespace"
+	if [[ -z "${namespace}" ]]; then namespace=default; fi;
+	echo -e "${1}${white}(kube:${violet}${contextName}${white}/${blue}${namespace}${white})";
+}
+
 prompt_git() {
 	local s='';
 	local ahead=0;
@@ -149,6 +161,7 @@ PS1+="\\[${hostStyle}\\]${cloud}\\h"; # host
 PS1+="\\[${white}\\] in ";
 PS1+="\\[${green}\\]\\w"; # working directory
 PS1+="\$(prompt_git \"${white} on ${violet}\")"; # Git repository details
+PS1+="\$(prompt_kube \"${white} ${violet}\")"; # Kubernetes cluster details
 PS1+="\\n";
 PS1+="\\[${white}\\]\$ \\[${reset}\\]"; # `$` (and reset color)
 export PS1;
