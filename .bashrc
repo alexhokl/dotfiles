@@ -180,4 +180,35 @@ if [[ -f "${HOME}/.travis/travis.sh" ]]; then
 	source "${HOME}/.travis/travis.sh"
 fi
 
+if [[ -n "$(which lsb_release)" ]]; then
+	if [[ "$(lsb_release -is)" != "Arch" ]]; then
+		file=$GOPATH/installation/debian/functions
+	else
+		file=$GOPATH/installation/archlinux/functions
+	fi
+else
+	file=$GOPATH/installation/archlinux/functions
+fi
 
+if [[ -r "$file" ]] && [[ -f "$file" ]]; then
+	source "$file"
+fi
+unset file
+
+complete -C /usr/local/bin/vault vault
+
+if command -v brew &> /dev/null; then
+	[ -f $(brew --prefix)/etc/bash_completion ] && . $(brew --prefix)/etc/bash_completion
+fi
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+[ -f /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
+[ -f /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
+[ -f /opt/homebrew/opt/fzf/shell/key-bindings.bash ] && source /opt/homebrew/opt/fzf/shell/key-bindings.bash
+[ -f /opt/homebrew/opt/fzf/shell/completion.bash ] && source /opt/homebrew/opt/fzf/shell/completion.bash
+[ -f $HOME/.config/flutter/bash_completion ] && source $HOME/.config/flutter/bash_completion
+
+if command -v brew &> /dev/null; then
+	source "$(brew --prefix)/share/google-cloud-sdk/path.bash.inc"
+fi
+
+complete -F __start_kubectl kub
