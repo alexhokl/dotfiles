@@ -165,3 +165,5 @@ if [[ -f "${HOME}/.travis/travis.sh" ]]; then
 fi
 
 
+
+complete -C /usr/local/bin/vault vault
