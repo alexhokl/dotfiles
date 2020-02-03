@@ -185,9 +185,8 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exit
-# reset displays
-bindsym $mod+Shift+x exec "xrandr --auto"
-bindsym $mod+Shift+z exec "xrandr --output DP-1 --mode 3840x2160 && xrandr --output eDP-1 --off"
+# select displays
+bindsym $mod+Shift+x exec display_select_prompt
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
