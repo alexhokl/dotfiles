@@ -1,0 +1,13 @@
+#!/bin/sh
+
+choices="laptop\nmirror\ndesktop\ndual\nauto"
+
+chosen=$(echo "$choices" | dmenu -i)
+
+case "$chosen" in
+	laptop) xrandr --output eDP-1 --mode 3840x2160 && xrandr --output DP-1 --off ;;
+	mirror) xrandr --output DP-1 --same-as eDP-1 ;;
+	desktop) xrandr --output DP-1 --mode 3840x2160 && xrandr --output eDP-1 --off ;;
+	dual) xrandr --output DP-1 --mode 3840x2160 && xrandr --output eDP-1 --mode 3840x2160 ;;
+	auto) xrandr --auto ;;
+esac
