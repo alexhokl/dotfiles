@@ -116,10 +116,14 @@ aws(){
 	fi
 }
 az(){
-	docker run -it --rm \
-		-v "${HOME}/.azure:/root/.azure" \
-		--log-driver none \
-		${DOCKER_REPO_PREFIX}/azure-cli "$@"
+	if [[ -n "$(which az)" ]]; then
+		"$(which az)" "$@"
+	else
+		docker run -it --rm \
+			-v "${HOME}/.azure:/root/.azure" \
+			--log-driver none \
+			${DOCKER_REPO_PREFIX}/azure-cli "$@"
+	fi
 }
 bees(){
 	docker run -it --rm \
@@ -359,11 +363,15 @@ htop(){
 	fi
 }
 htpasswd(){
-	docker run --rm -it \
-		--net none \
-		--name htpasswd \
-		--log-driver none \
-		${DOCKER_REPO_PREFIX}/htpasswd "$@"
+	if [[ -n "$(which htpasswd)" ]]; then
+		"$(which htpasswd)" "$@"
+	else
+		docker run --rm -it \
+			--net none \
+			--name htpasswd \
+			--log-driver none \
+			${DOCKER_REPO_PREFIX}/htpasswd "$@"
+	fi
 }
 http(){
 	docker run -t --rm \
@@ -529,34 +537,38 @@ mpd(){
 		${DOCKER_REPO_PREFIX}/mpd
 }
 mutt(){
-	# subshell so we dont overwrite variables
-	(
-	local account=$1
-	export IMAP_SERVER
-	export SMTP_SERVER
+	if [[ -n "$(which mutt)" ]]; then
+		"$(which mutt)" "$@"
+	else
+		# subshell so we dont overwrite variables
+		(
+		local account=$1
+		export IMAP_SERVER
+		export SMTP_SERVER
 
-	if [[ "$account" == "riseup" ]]; then
-		export GMAIL=$MAIL_RISEUP
-		export GMAIL_NAME=$MAIL_RISEUP_NAME
-		export GMAIL_PASS=$MAIL_RISEUP_PASS
-		export GMAIL_FROM=$MAIL_RISEUP_FROM
-		IMAP_SERVER=mail.riseup.net
-		SMTP_SERVER=$IMAP_SERVER
+		if [[ "$account" == "riseup" ]]; then
+			export GMAIL=$MAIL_RISEUP
+			export GMAIL_NAME=$MAIL_RISEUP_NAME
+			export GMAIL_PASS=$MAIL_RISEUP_PASS
+			export GMAIL_FROM=$MAIL_RISEUP_FROM
+			IMAP_SERVER=mail.riseup.net
+			SMTP_SERVER=$IMAP_SERVER
+		fi
+
+		docker run -it --rm \
+			-e GMAIL \
+			-e GMAIL_NAME \
+			-e GMAIL_PASS \
+			-e GMAIL_FROM \
+			-e GPG_ID \
+			-e IMAP_SERVER \
+			-e SMTP_SERVER \
+			-v "${HOME}/.gnupg:/home/user/.gnupg:ro" \
+			-v /etc/localtime:/etc/localtime:ro \
+			--name "mutt-${account}" \
+			${DOCKER_REPO_PREFIX}/mutt
+		)
 	fi
-
-	docker run -it --rm \
-		-e GMAIL \
-		-e GMAIL_NAME \
-		-e GMAIL_PASS \
-		-e GMAIL_FROM \
-		-e GPG_ID \
-		-e IMAP_SERVER \
-		-e SMTP_SERVER \
-		-v "${HOME}/.gnupg:/home/user/.gnupg:ro" \
-		-v /etc/localtime:/etc/localtime:ro \
-		--name "mutt-${account}" \
-		${DOCKER_REPO_PREFIX}/mutt
-	)
 }
 ncmpc(){
 	del_stopped ncmpc
@@ -800,25 +812,29 @@ privoxy(){
 	hostess add privoxy "$(docker inspect --format '{{.NetworkSettings.Networks.bridge.IPAddress}}' privoxy)"
 }
 pulseaudio(){
-	del_stopped pulseaudio
+	if [[ -n "$(which pulseaudio)" ]]; then
+		"$(which pulseaudio)" "$@"
+	else
+		del_stopped pulseaudio
 
-	docker run -d \
-		-v /etc/localtime:/etc/localtime:ro \
-		--device /dev/snd \
-		-p 4713:4713 \
-		--restart always \
-		--group-add audio \
-		--name pulseaudio \
-		${DOCKER_REPO_PREFIX}/pulseaudio
+		docker run -d \
+			-v /etc/localtime:/etc/localtime:ro \
+			--device /dev/snd \
+			-p 4713:4713 \
+			--restart always \
+			--group-add audio \
+			--name pulseaudio \
+			${DOCKER_REPO_PREFIX}/pulseaudio
+	fi
 }
-rainbowstream(){
-	docker run -it --rm \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v "${HOME}/.rainbow_oauth:/root/.rainbow_oauth" \
-		-v "${HOME}/.rainbow_config.json:/root/.rainbow_config.json" \
-		--name rainbowstream \
-		${DOCKER_REPO_PREFIX}/rainbowstream
-}
+# rainbowstream(){
+# 	docker run -it --rm \
+# 		-v /etc/localtime:/etc/localtime:ro \
+# 		-v "${HOME}/.rainbow_oauth:/root/.rainbow_oauth" \
+# 		-v "${HOME}/.rainbow_config.json:/root/.rainbow_config.json" \
+# 		--name rainbowstream \
+# 		${DOCKER_REPO_PREFIX}/rainbowstream
+# }
 registrator(){
 	del_stopped registrator
 
@@ -934,23 +950,23 @@ skype(){
 		--name skype \
 		${DOCKER_REPO_PREFIX}/skype
 }
-slack(){
-	del_stopped slack
-
-	docker run -d \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /tmp/.X11-unix:/tmp/.X11-unix \
-		-e "DISPLAY=unix${DISPLAY}" \
-		--device /dev/snd \
-		--device /dev/dri \
-		--device /dev/video0 \
-		--group-add audio \
-		--group-add video \
-		-v "${HOME}/.slack:/root/.config/Slack" \
-		--ipc="host" \
-		--name slack \
-		${DOCKER_REPO_PREFIX}/slack "$@"
-}
+# slack(){
+# 	del_stopped slack
+#
+# 	docker run -d \
+# 		-v /etc/localtime:/etc/localtime:ro \
+# 		-v /tmp/.X11-unix:/tmp/.X11-unix \
+# 		-e "DISPLAY=unix${DISPLAY}" \
+# 		--device /dev/snd \
+# 		--device /dev/dri \
+# 		--device /dev/video0 \
+# 		--group-add audio \
+# 		--group-add video \
+# 		-v "${HOME}/.slack:/root/.config/Slack" \
+# 		--ipc="host" \
+# 		--name slack \
+# 		${DOCKER_REPO_PREFIX}/slack "$@"
+# }
 spotify(){
 	del_stopped spotify
 
@@ -1012,12 +1028,12 @@ steam(){
 		--name steam \
 		${DOCKER_REPO_PREFIX}/steam
 }
-t(){
-	docker run -t --rm \
-		-v "${HOME}/.trc:/root/.trc" \
-		--log-driver none \
-		${DOCKER_REPO_PREFIX}/t "$@"
-}
+# t(){
+# 	docker run -t --rm \
+# 		-v "${HOME}/.trc:/root/.trc" \
+# 		--log-driver none \
+# 		${DOCKER_REPO_PREFIX}/t "$@"
+# }
 tarsnap(){
 	docker run --rm -it \
 		-v "${HOME}/.tarsnaprc:/root/.tarsnaprc" \
@@ -1147,14 +1163,18 @@ travis(){
 		${DOCKER_REPO_PREFIX}/travis "$@"
 }
 virsh(){
-	relies_on kvm
+	if [[ -n "$(which virsh)" ]]; then
+		"$(which virsh)" "$@"
+	else
+		relies_on kvm
 
-	docker run -it --rm \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /run/libvirt:/var/run/libvirt \
-		--log-driver none \
-		--net container:kvm \
-		${DOCKER_REPO_PREFIX}/libvirt-client "$@"
+		docker run -it --rm \
+			-v /etc/localtime:/etc/localtime:ro \
+			-v /run/libvirt:/var/run/libvirt \
+			--log-driver none \
+			--net container:kvm \
+			${DOCKER_REPO_PREFIX}/libvirt-client "$@"
+	fi
 }
 virtualbox(){
 	del_stopped virtualbox
@@ -1168,18 +1188,22 @@ virtualbox(){
 		${DOCKER_REPO_PREFIX}/virtualbox
 }
 virt_viewer(){
-	relies_on kvm
+	if [[ -n "$(which virt_viewer)" ]]; then
+		"$(which virt_viewer)" "$@"
+	else
+		relies_on kvm
 
-	docker run -it --rm \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /tmp/.X11-unix:/tmp/.X11-unix  \
-		-e "DISPLAY=unix${DISPLAY}" \
-		-v /run/libvirt:/var/run/libvirt \
-		-e PULSE_SERVER=pulseaudio \
-		--group-add audio \
-		--log-driver none \
-		--net container:kvm \
-		${DOCKER_REPO_PREFIX}/virt-viewer "$@"
+		docker run -it --rm \
+			-v /etc/localtime:/etc/localtime:ro \
+			-v /tmp/.X11-unix:/tmp/.X11-unix  \
+			-e "DISPLAY=unix${DISPLAY}" \
+			-v /run/libvirt:/var/run/libvirt \
+			-e PULSE_SERVER=pulseaudio \
+			--group-add audio \
+			--log-driver none \
+			--net container:kvm \
+			${DOCKER_REPO_PREFIX}/virt-viewer "$@"
+	fi
 }
 alias virt-viewer="virt_viewer"
 visualstudio(){
@@ -1195,24 +1219,28 @@ visualstudio(){
 }
 alias vscode="visualstudio"
 vlc(){
-	del_stopped vlc
-	relies_on pulseaudio
+	if [[ -n "$(which vlc)" ]]; then
+		"$(which vlc)" "$@"
+	else
+		del_stopped vlc
+		relies_on pulseaudio
 
-	docker run -d \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /tmp/.X11-unix:/tmp/.X11-unix \
-		-e "DISPLAY=unix${DISPLAY}" \
-		-e GDK_SCALE \
-		-e GDK_DPI_SCALE \
-		-e QT_DEVICE_PIXEL_RATIO \
-		--link pulseaudio:pulseaudio \
-		-e PULSE_SERVER=pulseaudio \
-		--group-add audio \
-		--group-add video \
-		-v "${HOME}/Torrents:/home/vlc/Torrents" \
-		--device /dev/dri \
-		--name vlc \
-		${DOCKER_REPO_PREFIX}/vlc
+		docker run -d \
+			-v /etc/localtime:/etc/localtime:ro \
+			-v /tmp/.X11-unix:/tmp/.X11-unix \
+			-e "DISPLAY=unix${DISPLAY}" \
+			-e GDK_SCALE \
+			-e GDK_DPI_SCALE \
+			-e QT_DEVICE_PIXEL_RATIO \
+			--link pulseaudio:pulseaudio \
+			-e PULSE_SERVER=pulseaudio \
+			--group-add audio \
+			--group-add video \
+			-v "${HOME}/Torrents:/home/vlc/Torrents" \
+			--device /dev/dri \
+			--name vlc \
+			${DOCKER_REPO_PREFIX}/vlc
+	fi
 }
 watchman(){
 	del_stopped watchman
