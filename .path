@@ -1,10 +1,21 @@
 #!/bin/sh
 
 # go path
-export GOPATH="${HOME}/.go"
+export GOPATH="${HOME}/git"
+export GOBIN="${GOPATH}/bin"
 
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin:/usr/local/sbin
+export PATH=/opt/homebrew/opt/curl/bin:$PATH
+export PATH=${PATH}:$HOME/.rbenv/bin
+export PATH=${PATH}:$HOME/.rbenv/versions/3.1.1/bin
+export PATH=${PATH}:$HOME/.local/bin
+export PATH=${PATH}:/opt/mssql-tools/bin
+export PATH=${PATH}:$GOPATH/flutter/bin
+export PATH=${PATH}:$GOPATH/flutter/bin/cache/dart-sdk/bin
+export PATH=${PATH}:/snap/bin
+export PATH=${PATH}:$HOME/.krew/bin
+export PATH=${PATH}:$HOME/.opam/default/bin
 
 # add go path
 export PATH="/usr/local/go/bin:${GOPATH}/bin:${PATH}"
@@ -27,7 +38,11 @@ export PATH="/usr/local/opt/gnu-getopt/bin:${PATH}"
 # add mysql
 export PATH="/opt/homebrew/opt/mysql-client/bin:${PATH}"
 
+export PATH="${HOME}/.gem/ruby/3.2.0/bin:${PATH}"
+
 # update cdpath
+export CDPATH=${CDPATH}:${GOPATH}
+export CDPATH=${CDPATH}:${GOPATH}/work
 export CDPATH=${CDPATH}:${GOPATH}/src/github.com:${GOPATH}/src/golang.org:${GOPATH}/src
 
 # The next line updates PATH for the Google Cloud SDK.
