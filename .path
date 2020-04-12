@@ -1,10 +1,16 @@
 #!/bin/sh
 
 # go path
-export GOPATH="${HOME}/.go"
+export GOPATH="${HOME}/git"
 
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin
+export PATH=${PATH}:$HOME/.rbenv/bin
+export PATH=${PATH}:$HOME/.rbenv/versions/2.7.0/bin
+export PATH=${PATH}:$HOME/.local/bin
+export PATH=${PATH}:/opt/mssql-tools/bin
+export PATH=${PATH}:$HOME/git/flutter/bin
+export PATH=${PATH}:$HOME/git/flutter/bin/cache/dart-sdk/bin
 
 # add go path
 export PATH="/usr/local/go/bin:${GOPATH}/bin:${PATH}"
@@ -17,6 +23,8 @@ export PATH="/usr/share/bcc/tools:${PATH}"
 
 # update cdpath
 export CDPATH=${CDPATH}:${GOPATH}/src/github.com:${GOPATH}/src/golang.org:${GOPATH}/src
+export CDPATH=${CDPATH}:${GOPATH}/src/github.com/alexhokl
+export CDPATH=${CDPATH}:${HOME}/git
 
 # The next line updates PATH for the Google Cloud SDK.
 # shellcheck source=/dev/null
