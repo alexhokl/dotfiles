@@ -44,6 +44,9 @@
 	# Interactive rebase with the given number of latest commits
 	reb = "!r() { git rebase -i HEAD~$1; }; r"
 
+	# Interactive rebase with origin/master
+	rebm = "!r() { git rebase -i origin/master; }; r"
+
 	# Find branches containing commit
 	fb = "!f() { git branch -a --contains $1; }; f"
 
@@ -66,6 +69,16 @@
 	lg = log --color --decorate --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an (%G?)>%Creset' --abbrev-commit
 
 	mdiff = "!f() { git stash | head -1 | grep -q 'No local changes to save'; x=$?; git merge --no-commit $1 &>/dev/null; git add -u &>/dev/null; git diff --staged; git reset --hard &>/dev/null; test $x -ne 0 && git stash pop &>/dev/null; }; f"
+
+	# create a branch from branch $2 and cherry-pick all commits in the current
+	# branch with commit message $1 and the commit is not in origin/master
+	cpm = "!f() { git fetch; git checkout origin/$2; git checkout -b $1-$2; git cherry-pick $(git --no-pager log origin/master --no-merges --reverse --pretty=format:%h --grep $1); }; f"
+
+	# create a branch from branch $2 and cherry-pick all commits in branch $1
+	# but not in origin/master
+	cpb = "!f() { git fetch; git checkout origin/$2; git checkout -b $1-$2; git cherry-pick $(git --no-pager log origin/master..origin/$1 --no-merges --reverse --pretty=format:%h); }; f"
+
+	wip = "for-each-ref --sort='-authordate:iso8601' --format=' %(color:green)%(authordate:relative)%09%(color:white)%(refname:short)' refs/heads"
 
 	# Codereview aliases
 	change = codereview change
@@ -111,6 +124,17 @@
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
 	editor = vim
+	pager = delta
+
+[delta]
+	plus-color = "#012800"
+	minus-color = "#340001"
+	syntax-theme = Dracula
+	line-numbers = true
+	side-by-side = true
+
+[interactive]
+	diffFilter = delta --color-only
 
 [color]
 
@@ -141,6 +165,10 @@
 
 	# Detect copies as well as renames
 	renames = copies
+	tool = kdiff3
+
+[difftool]
+	prompt = false
 
 [help]
 
@@ -151,36 +179,42 @@
 
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
+	tool = kdiff3
+	conflictStyle = diff3
+
+[mergetool]
+	keepBackup = false
+	prompt = false
 
 [push]
 	# change to maching for machines with older versions of git 1.x.x
 	default = simple
 
-[url "git@github.com:github"]
-
-	insteadOf = "https://github.com/github"
-	insteadOf = "github:github"
-	insteadOf = "git://github.com/github"
-
-[url "git@github.com:"]
-
-	pushInsteadOf = "https://github.com/"
-	pushInsteadOf = "github:"
-	pushInsteadOf = "git://github.com/"
-
-[url "git://github.com/"]
-
-	insteadOf = "github:"
-
-[url "git@gist.github.com:"]
-
-	insteadOf = "gst:"
-	pushInsteadOf = "gist:"
-	pushInsteadOf = "git://gist.github.com/"
-
-[url "git://gist.github.com/"]
-
-	insteadOf = "gist:"
+# [url "git@github.com:github"]
+#
+# 	insteadOf = "https://github.com/github"
+# 	insteadOf = "github:github"
+# 	insteadOf = "git://github.com/github"
+#
+# [url "git@github.com:"]
+#
+# 	pushInsteadOf = "https://github.com/"
+# 	pushInsteadOf = "github:"
+# 	pushInsteadOf = "git://github.com/"
+#
+# [url "git://github.com/"]
+#
+# 	insteadOf = "github:"
+#
+# [url "git@gist.github.com:"]
+#
+# 	insteadOf = "gst:"
+# 	pushInsteadOf = "gist:"
+# 	pushInsteadOf = "git://gist.github.com/"
+#
+# [url "git://gist.github.com/"]
+#
+# 	insteadOf = "gist:"
 
 # Uncomment if you want fetch to also get all github pull requests, this is rather
 # large on big repos.
@@ -190,4 +224,21 @@
 [commit]
 	gpgsign = true
 [pull]
-	rebase = true
+	rebase = false
+	ff = only
+
+[user]
+	name = alexhokl
+	email = alexhokl@gmail.com
+
+[github]
+	user = alexhokl
+
+[http "https://gopkg.in"]
+	followRedirects = true
+
+[include]
+	path = ~/.gitconfig_linux
+
+[includeIf "gitdir:~/git/work/"]
+	path = ~/git/work/.gitconfig
