@@ -30,7 +30,7 @@ dotfiles: ## Installs the dotfiles.
 		sudo ln -snf /usr/bin/pinentry /usr/local/bin/pinentry; \
 	fi;
 	mkdir -p $(HOME)/Pictures;
-	ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
+	#ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
 
 .PHONY: etc
 etc: ## Installs the etc directory files.

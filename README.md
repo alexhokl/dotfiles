@@ -1,7 +1,5 @@
 ## dotfiles
 
-[![Travis CI](https://img.shields.io/travis/jessfraz/dotfiles.svg?style=for-the-badge)](https://travis-ci.org/jessfraz/dotfiles)
-
 **To install:**
 
 ```console
@@ -40,7 +38,7 @@ export GMAIL_FROM=from-email@you.com
 #### `.vim`
 
 For my `.vimrc` and `.vim` dotfiles see
-[github.com/jessfraz/.vim](https://github.com/jessfraz/.vim).
+[github.com/alexhokl/.vim](https://github.com/alexhokl/.vim).
 
 ### Tests
 
