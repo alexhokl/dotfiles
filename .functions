@@ -544,3 +544,56 @@ cad_convert_rack_files_to_collada() {
 		fi
 	done
 }
+
+function screencast() {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no duration (in seconds) was specifed."
+		return 1
+	fi
+
+	echo "Please click on a screen to start"
+
+  byzanz-record -d $1 -c $(xwininfo | awk '/Absolute upper-left X/ { x = $4 } /Absolute upper-left Y/ { y = $4 } /Width/ { w = $2 } /Height/ { h = $2 } END { print "-x", x, "-y", y, "-w", w, "-h", h }') ${HOME}/Pictures/screenshots/screencast-$(date +%Y-%m-%d-%H-%M).gif
+}
+
+function check_cert() {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no URL was specifed. (for instance, https://www.google.com)"
+		return 1
+	fi
+
+	step certificate inspect --format json ${1} | jq '{ start:.validity.start, end:.validity.end }'
+}
+
+function az-private-ip-list() {
+	for g in $(az group list | jq -r '.[] | .name'); do
+		for z in $(az network private-dns zone list -g $g | jq -r '.[] | .name'); do
+			az network private-dns record-set a list -g $g -z $z | jq '.[] | { fqdn:.fqdn, ip:.aRecords[0].ipv4Address, rg:.resourceGroup }'
+		done
+	done
+}
+
+function vgrep() {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no search term is specified"
+		return 1
+	fi
+	vim -c "/${1}" $(git grep -l $@)
+}
+
+top_processes() {
+  echo top memory usages
+  ps axch -o cmd,%mem --sort=-%mem | head
+	echo
+	echo top CPU consumptions
+  ps axch -o cmd,%cpu --sort=-%cpu | head
+}
+
+cd_home() {
+  TEMP_PWD=`pwd`
+  while ! [ -d .git ]; do
+  cd ..
+  done
+  OLDPWD=$TEMP_PWD
+}
+
