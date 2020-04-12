@@ -19,7 +19,7 @@
 	pr = !"pr() { git fetch origin pull/$1/head:pr-$1; git checkout pr-$1; }; pr"
 
 	# Clone a repository including all submodules
-	c = clone --recursive
+	#c = clone --recursive
 
 	# Commit all changes
 	ca = !git add -A && git commit -av
@@ -67,6 +67,12 @@
 
 	mdiff = "!f() { git stash | head -1 | grep -q 'No local changes to save'; x=$?; git merge --no-commit $1 &>/dev/null; git add -u &>/dev/null; git diff --staged; git reset --hard &>/dev/null; test $x -ne 0 && git stash pop &>/dev/null; }; f"
 
+	rp = "!f() { git fetch; git checkout master; git branch -D $1; git checkout $1; }; f"
+
+	cpm = "!f() { git fetch; git checkout origin/$2; git checkout -b $1-$2; git cherry-pick $(git --no-pager log origin/master --no-merges --reverse --pretty=format:%h --grep $1); }; f"
+
+	cpb = "!f() { git fetch; git checkout origin/$2; git checkout -b $1-$2; git cherry-pick $(git --no-pager log origin/master..origin/$1 --no-merges --reverse --pretty=format:%h); }; f"
+
 	# Codereview aliases
 	change = codereview change
 	gofmt = codereview gofmt
@@ -110,7 +116,6 @@
 	# Make `git rebase` safer on OS X
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
-	editor = vim
 
 [color]
 
@@ -141,6 +146,10 @@
 
 	# Detect copies as well as renames
 	renames = copies
+	tool = kdiff3
+
+[difftool]
+	prompt = false
 
 [help]
 
@@ -151,30 +160,35 @@
 
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
+	tool = kdiff3
+
+[mergetool]
+	keepBackup = false
+	prompt = false
 
 [push]
 	# change to maching for machines with older versions of git 1.x.x
 	default = simple
 
-[url "git@github.com:"]
+#[url "git@github.com:"]
 
-	pushInsteadOf = https://github.com/
-	pushInsteadOf = "github:"
-	pushInsteadOf = "git://github.com/"
+	#pushInsteadOf = https://github.com/
+	#pushInsteadOf = "github:"
+	#pushInsteadOf = "git://github.com/"
 
-[url "git://github.com/"]
+#[url "git://github.com/"]
 
-	insteadOf = "github:"
+	#insteadOf = "github:"
 
-[url "git@gist.github.com:"]
+#[url "git@gist.github.com:"]
 
-	insteadOf = "gst:"
-	pushInsteadOf = "gist:"
-	pushInsteadOf = "git://gist.github.com/"
+	#insteadOf = "gst:"
+	#pushInsteadOf = "gist:"
+	#pushInsteadOf = "git://gist.github.com/"
 
-[url "git://gist.github.com/"]
+#[url "git://gist.github.com/"]
 
-	insteadOf = "gist:"
+	#insteadOf = "gist:"
 
 # Uncomment if you want fetch to also get all github pull requests, this is rather
 # large on big repos.
@@ -183,3 +197,16 @@
 
 [commit]
 	gpgsign = true
+
+[user]
+	name = alexhokl
+	email = alexhokl@gmail.com
+
+[github]
+	user = alexhokl
+
+[http "https://gopkg.in"]
+	followRedirects = true
+
+[include]
+	path = ~/.gitconfig_linux
