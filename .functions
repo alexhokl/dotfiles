@@ -505,3 +505,14 @@ function gen-keys {
   openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.pem
   rm csr.pem
 }
+
+function screencast {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no duration (in seconds) was specifed."
+		return 1
+	fi
+
+	echo "Please click on a screen to start"
+
+  byzanz-record -d $1 -c $(xwininfo | awk '/Absolute upper-left X/ { x = $4 } /Absolute upper-left Y/ { y = $4 } /Width/ { w = $2 } /Height/ { h = $2 } END { print "-x", x, "-y", y, "-w", w, "-h", h }') ${HOME}/Pictures/screenshots/screencast-$(date +%Y-%m-%d-%H-%M).gif
+}
