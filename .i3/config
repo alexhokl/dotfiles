@@ -52,11 +52,11 @@ for_window [class="^Spotify$"] border none
 for_window [class="^Spotify Premium$"] border none
 
 # skype, steam, wine: float Gimp
-for_window [class="Code"] floating enable
-for_window [class="Firefox"] floating enable
+#for_window [class="Code"] floating enable
+# for_window [class="Firefox"] floating enable
 for_window [class="Gimp"] floating enable
-for_window [class="google-chrome"] floating enable
-for_window [class="Google-chrome"] floating enable
+#for_window [class="google-chrome"] floating enable
+#for_window [class="Google-chrome"] floating enable
 for_window [class="Keybase"] floating enable
 for_window [class="Kicad"] floating enable
 for_window [class="Logic"] floating enable
@@ -67,16 +67,17 @@ for_window [class="Pidgin"] floating enable
 for_window [class="Portal"] floating enable
 for_window [class="RStudio"] floating enable
 for_window [class="Skype"] floating enable
-for_window [class="Slack"] floating enable
+#for_window [class="Slack"] floating enable
 for_window [class="Steam"] floating enable
 for_window [class="Tor Browser"] floating enable
-for_window [class="Virt-manager"] floating enable
-for_window [class="Virt-viewer"] floating enable
-for_window [class="VirtualBox"] floating enable
+# for_window [class="Virt-manager"] floating enable
+# for_window [class="Virt-viewer"] floating enable
+#for_window [class="VirtualBox"] floating enable
 for_window [class="vlc"] floating enable
 for_window [class="Wine"] floating enable
 for_window [class="Wireshark"] floating enable
 for_window [class="zoom"] floating enable
+for_window [class="Peek"] floating enable
 
 # lock screen
 bindsym $mod+l exec $lockcmd -c 111111
@@ -118,15 +119,15 @@ bindsym $mod+minus split v
 bindsym $mod+f fullscreen
 
 # change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
+# bindsym $mod+s layout stacking
+# bindsym $mod+w layout tabbed
+# bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
-bindsym $mod+Shift+space floating toggle
+# bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
+# bindsym $mod+space focus mode_toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
@@ -159,26 +160,31 @@ bindsym $mod+Shift+9 move container to workspace 9
 bindsym $mod+Shift+0 move container to workspace 10
 
 # audio controls
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume 0 +5% #increase sound volume
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume 0 -5% #decrease sound volume
-bindsym XF86AudioMute exec pactl set-sink-mute 0 toggle # mute sound
-bindsym XF86AudioMicMute exec amixer set Capture toggle # mute mic
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume 0 +5% && pkill -RTMIN+10 #increase sound volume
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume 0 -5% && pkill -RTMIN+10 #decrease sound volume
+bindsym XF86AudioMute exec pactl set-sink-mute 0 toggle && pkill -RTMIN+10 # mute sound
+bindsym $mod+Shift+F12 exec pactl set-sink-volume 0 +5% && pkill -RTMIN+10 i3blocks #increase sound volume
+bindsym $mod+Shift+F11 exec pactl set-sink-volume 0 -5% && pkill -RTMIN+10 i3blocks #decrease sound volume
+bindsym $mod+Shift+F10 exec pactl set-sink-mute 0 toggle && pkill -RTMIN+10 i3blocks # mute sound
+bindsym XF86AudioMicMute exec amixer set Capture toggle && pkill -RTMIN+10 i3blocks # mute mic
+bindsym $mod+Shift+F9 exec amixer set Capture toggle && pkill -RTMIN+10 i3blocks # mute mic
 
 # screen brightness controls
-bindsym XF86MonBrightnessUp exec sudo light -A 5 # increase screen brightness
-bindsym XF86MonBrightnessDown exec sudo light -U 5 # decrease screen brightness
+bindsym XF86MonBrightnessUp exec light -A 5 # increase screen brightness
+bindsym XF86MonBrightnessDown exec light -U 5 # decrease screen brightness
 
 # Screenshots
 # Screenshot fullscreen
-bindsym Print exec "scrot -q 100 ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png' -e ${HOME}'/google-cloud-sdk/bin/gsutil cp -a public-read $f gs://misc.j3ss.co/screenshots/ && echo https://misc.j3ss.co/screenshots/$n | xclip -i -selection clipboard'"
+bindsym Print exec "scrot -q 100 ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
 # Screenshot fullscreen, sway
 #bindsym Shift+Print exec "swaygrab ${HOME}/Pictures/Screenshots/$(date '+%Y-%m-%d-%H-%M-%S').png"
 # Screenshot with selection
-bindsym $mod+Print exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png' -e ${HOME}'/google-cloud-sdk/bin/gsutil cp -a public-read $f gs://misc.j3ss.co/screenshots/ && echo https://misc.j3ss.co/screenshots/$n | xclip -i -selection clipboard'"
+bindsym $mod+Print exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
+bindsym $mod+Shift+p exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
 # Screenshot capture, sway
 #bindsym Shift+Print exec "swaygrab -c ${HOME}/Pictures/Screenshots/$(date '+%Y-%m-%d-%H-%M-%S').webm"
 # Screenshot current focused window
-bindsym Shift+Print exec "scrot -q 100 -u ${HOME}'/Pictures/Screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png' -e ${HOME}'/google-cloud-sdk/bin/gsutil cp -a public-read $f gs://misc.j3ss.co/screenshots/ && echo https://misc.j3ss.co/screenshots/$n | xclip -i -selection clipboard'"
+bindsym Shift+Print exec "scrot -q 100 -u ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
 # Screenshot current focused window, sway
 #bindsym Shift+Print exec "swaygrab --focused ${HOME}/Pictures/Screenshots/$(date '+%Y-%m-%d-%H-%M-%S').png"
 
@@ -188,6 +194,8 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exit
+# select displays
+bindsym $mod+Shift+x exec display_select_prompt
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -217,18 +225,19 @@ bindsym $mod+r mode "resize"
 
 # i3status bar config
 bar {
-	font pango:monospace 5
-	status_command $barcmd --config ~/.i3/status.conf
+	font pango:monospace 10
+	# status_command $barcmd --config ~/.i3/status.conf
+	status_command i3blocks
 }
 
 # auto run commands
 # set background
 # use the same background as slim (login manager)
 # this file is an alias to something in /home/jessie/Pictures
-exec --no-startup-id feh --bg-fill ${HOME}/Pictures/central-park.jpg
+exec --no-startup-id feh --bg-fill ${HOME}/Pictures/i3-wall-paper.jpg
 
 # Sway backgroud
-# output "*" background ${HOME}/Pictures/central-park2.jpg fill
+# output "*" background ${HOME}/Pictures/i3-wall-paper.jpg fill
 
 # run the merge for good colors
 exec xrdb -merge $HOME/.Xresources
