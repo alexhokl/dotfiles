@@ -1,0 +1,11 @@
+[core]
+	editor = nvim
+
+[user]
+  signingkey = 69E7E42AFB23B606
+
+[commit]
+  gpgsign = true
+
+[gpg]
+  program = gpg
