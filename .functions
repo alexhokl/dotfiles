@@ -471,3 +471,37 @@ restart_gpgagent(){
 gitsetoriginnopush() {
 	git remote set-url --push origin no_push
 }
+
+function ssh-gen-cert {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no key name specifed."
+		return 1
+	fi
+
+	if [ -z "${2}" ]; then
+		echo "ERROR: no server specified (format: user@server)."
+		return 1
+	fi
+
+	ssh-keygen -t rsa -b 2048 -f "$1" -v
+	ssh-copy-id -i "$1".pub "$2"
+	mv "$1" "$1".pem
+	chmod 400 "$1".pem
+	ssh -i "$1".pem "$2"
+}
+
+function containers-stop {
+  docker stop $(docker ps -a -q)
+}
+
+function containers-rm {
+  containers-stop
+  docker rm $(docker ps -a -q)
+}
+
+function gen-keys {
+  openssl genrsa -out key.pem
+  openssl req -new -config gen.conf -key key.pem -out csr.pem
+  openssl x509 -req -days 9999 -in csr.pem -signkey key.pem -out cert.pem
+  rm csr.pem
+}
