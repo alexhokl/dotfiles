@@ -351,13 +351,17 @@ htop(){
 			${DOCKER_REPO_PREFIX}/htop
 	fi
 }
-# htpasswd(){
-# 	docker run --rm -it \
-# 		--net none \
-# 		--name htpasswd \
-# 		--log-driver none \
-# 		${DOCKER_REPO_PREFIX}/htpasswd "$@"
-# }
+htpasswd(){
+	if [[ -n "$(which htpasswd)" ]]; then
+		"$(which htpasswd)" "$@"
+	else
+		docker run --rm -it \
+			--net none \
+			--name htpasswd \
+			--log-driver none \
+			${DOCKER_REPO_PREFIX}/htpasswd "$@"
+	fi
+}
 http(){
 	docker run -t --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock \
