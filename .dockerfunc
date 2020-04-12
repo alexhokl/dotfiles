@@ -97,19 +97,19 @@ audacity(){
 		--name audacity \
 		${DOCKER_REPO_PREFIX}/audacity
 }
-aws(){
-	docker run -it --rm \
-		-v "${HOME}/.aws:/root/.aws" \
-		--log-driver none \
-		--name aws \
-		${DOCKER_REPO_PREFIX}/awscli "$@"
-}
-az(){
-	docker run -it --rm \
-		-v "${HOME}/.azure:/root/.azure" \
-		--log-driver none \
-		${DOCKER_REPO_PREFIX}/azure-cli "$@"
-}
+#aws(){
+	#docker run -it --rm \
+		#-v "${HOME}/.aws:/root/.aws" \
+		#--log-driver none \
+		#--name aws \
+		#${DOCKER_REPO_PREFIX}/awscli "$@"
+#}
+#az(){
+#	docker run -it --rm \
+#		-v "${HOME}/.azure:/root/.azure" \
+#		--log-driver none \
+#		${DOCKER_REPO_PREFIX}/azure-cli "$@"
+#}
 bees(){
 	docker run -it --rm \
 		-e NOTARY_TOKEN \
@@ -457,36 +457,36 @@ mpd(){
 		--name mpd \
 		${DOCKER_REPO_PREFIX}/mpd
 }
-mutt(){
-	# subshell so we dont overwrite variables
-	(
-	local account=$1
-	export IMAP_SERVER
-	export SMTP_SERVER
+#mutt(){
+	## subshell so we dont overwrite variables
+	#(
+	#local account=$1
+	#export IMAP_SERVER
+	#export SMTP_SERVER
 
-	if [[ "$account" == "riseup" ]]; then
-		export GMAIL=$MAIL_RISEUP
-		export GMAIL_NAME=$MAIL_RISEUP_NAME
-		export GMAIL_PASS=$MAIL_RISEUP_PASS
-		export GMAIL_FROM=$MAIL_RISEUP_FROM
-		IMAP_SERVER=mail.riseup.net
-		SMTP_SERVER=$IMAP_SERVER
-	fi
+	#if [[ "$account" == "riseup" ]]; then
+		#export GMAIL=$MAIL_RISEUP
+		#export GMAIL_NAME=$MAIL_RISEUP_NAME
+		#export GMAIL_PASS=$MAIL_RISEUP_PASS
+		#export GMAIL_FROM=$MAIL_RISEUP_FROM
+		#IMAP_SERVER=mail.riseup.net
+		#SMTP_SERVER=$IMAP_SERVER
+	#fi
 
-	docker run -it --rm \
-		-e GMAIL \
-		-e GMAIL_NAME \
-		-e GMAIL_PASS \
-		-e GMAIL_FROM \
-		-e GPG_ID \
-		-e IMAP_SERVER \
-		-e SMTP_SERVER \
-		-v "${HOME}/.gnupg:/home/user/.gnupg:ro" \
-		-v /etc/localtime:/etc/localtime:ro \
-		--name "mutt-${account}" \
-		${DOCKER_REPO_PREFIX}/mutt
-	)
-}
+	#docker run -it --rm \
+		#-e GMAIL \
+		#-e GMAIL_NAME \
+		#-e GMAIL_PASS \
+		#-e GMAIL_FROM \
+		#-e GPG_ID \
+		#-e IMAP_SERVER \
+		#-e SMTP_SERVER \
+		#-v "${HOME}/.gnupg:/home/user/.gnupg:ro" \
+		#-v /etc/localtime:/etc/localtime:ro \
+		#--name "mutt-${account}" \
+		#${DOCKER_REPO_PREFIX}/mutt
+	#)
+#}
 ncmpc(){
 	del_stopped ncmpc
 
@@ -944,17 +944,17 @@ termboy(){
 		--name termboy \
 		${DOCKER_REPO_PREFIX}/nes "/games/${game}.rom"
 }
-terraform(){
-	docker run -it --rm \
-		-v "${HOME}:${HOME}:ro" \
-		-v "$(pwd):/usr/src/repo" \
-		-v /tmp:/tmp \
-		--workdir /usr/src/repo \
-		--log-driver none \
-		-e GOOGLE_APPLICATION_CREDENTIALS \
-		-e SSH_AUTH_SOCK \
-		${DOCKER_REPO_PREFIX}/terraform "$@"
-}
+# terraform(){
+# 	docker run -it --rm \
+# 		-v "${HOME}:${HOME}:ro" \
+# 		-v "$(pwd):/usr/src/repo" \
+# 		-v /tmp:/tmp \
+# 		--workdir /usr/src/repo \
+# 		--log-driver none \
+# 		-e GOOGLE_APPLICATION_CREDENTIALS \
+# 		-e SSH_AUTH_SOCK \
+# 		${DOCKER_REPO_PREFIX}/terraform "$@"
+# }
 tor(){
 	del_stopped tor
 
@@ -1080,26 +1080,26 @@ visualstudio(){
 		${DOCKER_REPO_PREFIX}/vscode
 }
 alias vscode="visualstudio"
-vlc(){
-	del_stopped vlc
-	relies_on pulseaudio
-
-	docker run -d \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /tmp/.X11-unix:/tmp/.X11-unix \
-		-e "DISPLAY=unix${DISPLAY}" \
-		-e GDK_SCALE \
-		-e GDK_DPI_SCALE \
-		-e QT_DEVICE_PIXEL_RATIO \
-		--link pulseaudio:pulseaudio \
-		-e PULSE_SERVER=pulseaudio \
-		--group-add audio \
-		--group-add video \
-		-v "${HOME}/Torrents:/home/vlc/Torrents" \
-		--device /dev/dri \
-		--name vlc \
-		${DOCKER_REPO_PREFIX}/vlc
-}
+#vlc(){
+	#del_stopped vlc
+	#relies_on pulseaudio
+#
+	#docker run -d \
+		#-v /etc/localtime:/etc/localtime:ro \
+		#-v /tmp/.X11-unix:/tmp/.X11-unix \
+		#-e "DISPLAY=unix${DISPLAY}" \
+		#-e GDK_SCALE \
+		#-e GDK_DPI_SCALE \
+		#-e QT_DEVICE_PIXEL_RATIO \
+		#--link pulseaudio:pulseaudio \
+		#-e PULSE_SERVER=pulseaudio \
+		#--group-add audio \
+		#--group-add video \
+		#-v "${HOME}/Torrents:/home/vlc/Torrents" \
+		#--device /dev/dri \
+		#--name vlc \
+		#${DOCKER_REPO_PREFIX}/vlc
+#}
 watchman(){
 	del_stopped watchman
 
