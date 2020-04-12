@@ -17,7 +17,9 @@ fi
 # run Xprofile
 if [ -f ~/.Xprofile ]; then
 	# shellcheck source=/dev/null
-	. ~/.Xprofile
+	if ! echo $XDG_CURRENT_DESKTOP | grep GNOME > /dev/null; then
+		. ~/.Xprofile
+	fi
 fi
 
 # run Xmodmap
