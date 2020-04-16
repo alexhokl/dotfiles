@@ -1107,16 +1107,16 @@ travis(){
 		--log-driver none \
 		${DOCKER_REPO_PREFIX}/travis "$@"
 }
-virsh(){
-	relies_on kvm
-
-	docker run -it --rm \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /run/libvirt:/var/run/libvirt \
-		--log-driver none \
-		--net container:kvm \
-		${DOCKER_REPO_PREFIX}/libvirt-client "$@"
-}
+# virsh(){
+# 	relies_on kvm
+#
+# 	docker run -it --rm \
+# 		-v /etc/localtime:/etc/localtime:ro \
+# 		-v /run/libvirt:/var/run/libvirt \
+# 		--log-driver none \
+# 		--net container:kvm \
+# 		${DOCKER_REPO_PREFIX}/libvirt-client "$@"
+# }
 virtualbox(){
 	del_stopped virtualbox
 
@@ -1128,21 +1128,21 @@ virtualbox(){
 		--name virtualbox \
 		${DOCKER_REPO_PREFIX}/virtualbox
 }
-virt_viewer(){
-	relies_on kvm
-
-	docker run -it --rm \
-		-v /etc/localtime:/etc/localtime:ro \
-		-v /tmp/.X11-unix:/tmp/.X11-unix  \
-		-e "DISPLAY=unix${DISPLAY}" \
-		-v /run/libvirt:/var/run/libvirt \
-		-e PULSE_SERVER=pulseaudio \
-		--group-add audio \
-		--log-driver none \
-		--net container:kvm \
-		${DOCKER_REPO_PREFIX}/virt-viewer "$@"
-}
-alias virt-viewer="virt_viewer"
+# virt_viewer(){
+# 	relies_on kvm
+#
+# 	docker run -it --rm \
+# 		-v /etc/localtime:/etc/localtime:ro \
+# 		-v /tmp/.X11-unix:/tmp/.X11-unix  \
+# 		-e "DISPLAY=unix${DISPLAY}" \
+# 		-v /run/libvirt:/var/run/libvirt \
+# 		-e PULSE_SERVER=pulseaudio \
+# 		--group-add audio \
+# 		--log-driver none \
+# 		--net container:kvm \
+# 		${DOCKER_REPO_PREFIX}/virt-viewer "$@"
+# }
+# alias virt-viewer="virt_viewer"
 visualstudio(){
 	del_stopped visualstudio
 
