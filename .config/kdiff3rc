@@ -38,7 +38,7 @@ FollowDirLinks=false
 FollowFileLinks=false
 Font=Monaco,13,-1,2,50,0,0,0,0,0
 FullAnalysis=false
-Geometry=3840,2160
+Geometry=1916,1053
 HistoryEntryStartRegExp=\\\\s*\\\\\\\\main\\\\\\\\(\\\\S+)\\\\s+([0-9]+) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) ([0-9][0-9][0-9][0-9]) ([0-9][0-9]:[0-9][0-9]:[0-9][0-9])\\\\s+(.*)
 HistoryEntryStartSortKeyOrder=4\\,3\\,2\\,5\\,1\\,6
 HistoryMergeSorting=false
@@ -57,7 +57,7 @@ MidAgeFileColor=192,192,0
 MissingFileColor=0,0,0
 NewestFileColor=0,208,0
 OldestFileColor=240,0,0
-Position=0,0
+Position=0,1082
 PreProcessorCmd=\\0
 RecentAFiles=
 RecentBFiles=
@@ -95,6 +95,6 @@ WordWrap=false
 
 [MainWindow]
 Height 2160=2160
-State=AAAA/wAAAAD9AAAAAAAADwAAAAgUAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
+State=AAAA/wAAAAD9AAAAAAAAB3wAAAPBAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
 ToolBarsMovable=Disabled
 Width 3840=3840
