@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fe() (
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+)
+
+# Modified version where you can press
+#   - CTRL-O to open with `open` command,
+#   - CTRL-E or Enter key to open with the $EDITOR
+fo() (
+  IFS=$'\n' out=("$(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e)")
+  key=$(head -1 <<< "$out")
+  file=$(head -2 <<< "$out" | tail -1)
+  if [ -n "$file" ]; then
+    [ "$key" = ctrl-o ] && open "$file" || ${EDITOR:-vim} "$file"
+  fi
+)
+
+# fh - repeat history
+fh() {
+  eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
+}
+
+# gb - checkout git branch
+gb() {
+  local branches branch
+  branches=$(git --no-pager branch -vv) &&
+  branch=$(echo "$branches" | fzf +m) &&
+  git checkout $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
+}
+
+# gco - checkout git branch (including remote branches)
+gco() {
+  local branches branch
+  branches=$(git branch --all | grep -v HEAD) &&
+  branch=$(echo "$branches" |
+           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+  git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
+}
+
+# gfc - show git commit
+gfc() {
+  local commits commit
+  commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  git show $(echo "$commit" | sed "s/ .*//")
+}
+
+kd() {
+	local nspod pod ns
+  nspod=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $nspod | awk -F '/' '{ print $1 }')
+	pod=$(echo $nspod | awk -F '/' '{ print $2 }')
+	kubectl describe pod -n $ns $pod
+}
+
+kl() {
+	local nspod pod ns
+  nspod=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $nspod | awk -F '/' '{ print $1 }')
+	pod=$(echo $nspod | awk -F '/' '{ print $2 }')
+	kubectl logs --tail=20 -n $ns $pod
+}
+
+lastpass() {
+	lpass show -c --password $(lpass ls  | fzf | awk '{print $(NF)}' | sed 's/\]//g')
+}
