@@ -165,8 +165,7 @@ if [[ -f "${HOME}/.travis/travis.sh" ]]; then
 fi
 
 
-
 complete -C /usr/local/bin/vault vault
 
-
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 complete -F __start_kubectl kub

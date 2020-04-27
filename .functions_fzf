@@ -1,0 +1,345 @@
+#!/bin/bash
+
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fe() (
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  echo $EDITOR $files
+  [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
+)
+
+# Modified version where you can press
+#   - CTRL-O to open with `open` command,
+#   - CTRL-E or Enter key to open with the $EDITOR
+fo() (
+  IFS=$'\n' out=("$(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e)")
+  key=$(head -1 <<< "$out")
+  file=$(head -2 <<< "$out" | tail -1)
+  if [ -n "$file" ]; then
+    [ "$key" = ctrl-o ] && open "$file" || ${EDITOR:-vim} "$file"
+  fi
+)
+
+# fh - repeat history
+fh() {
+  _TEMP=$( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
+	echo $_TEMP
+  eval $_TEMP
+}
+
+fb() {
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && bat "${files[@]}"
+}
+
+# gb - checkout git branch
+gb() {
+  local branches branch
+  branches=$(git --no-pager branch -vv) &&
+  branch=$(echo "$branches" | fzf +m) &&
+  git checkout $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
+}
+
+gbd() {
+  local branches branch
+  branches=$(git --no-pager branch -vv) &&
+  branch=$(echo "$branches" | fzf +m) &&
+  git branch -D $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
+}
+
+# gco - checkout git branch (including remote branches)
+gco() {
+	if [ "$1" == "-" ]; then
+		git checkout -
+		return
+	fi
+	if [ -n "$1" ]; then
+		git checkout $1,
+		return
+	fi
+
+  local branches branch
+  branches=$(git branch --all | grep -v HEAD) &&
+  branch=$(echo "$branches" |
+           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+  git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
+}
+
+# gmb - merge git branch (including remote branches)
+gmb() {
+  local branches branch
+  branches=$(git branch --all | grep -v HEAD) &&
+  branch=$(echo "$branches" |
+           fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+  echo git merge $(echo "$branch" | sed "s/.* //" | sed "s/remotes\///")
+  git merge $(echo "$branch" | sed "s/.* //" | sed "s/remotes\///")
+}
+
+# gfc - show git commit
+gfc() {
+  local commits commit
+  commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  git show $(echo "$commit" | sed "s/ .*//")
+}
+
+gl() (
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && echo ${files} && git lg "${files[@]}"
+)
+
+gls() (
+  local commits commit
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  commits=$(git log --pretty=oneline --abbrev-commit --reverse "$files") &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  git show $(echo "$commit" | sed "s/ .*//") "$files"
+)
+
+gfm() {
+  local commits commit
+  commits=$(git log --pretty=format:'%C(yellow)%h	%Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --reverse --decorate --date=short --grep=$1) &&
+  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  git show $(echo "$commit" | cut -f 1)
+}
+
+ga() {
+	git ls-files --modified --others --exclude-standard | fzf -m | xargs git add
+}
+
+kl() {
+	echo "Stream logs [y]? "
+	read streamBool
+	echo "Tail lines [0] = "
+	read lineCount
+	if [ -z "$streamBool" ]; then
+		streamBool=" -f "
+	else
+		if [ "$streamBool" = "y" ]; then
+			streamBool=" -f "
+		else
+			streamBool=""
+		fi
+	fi
+	if [ -z "$lineCount" ]; then
+		lineCount=0
+	fi
+
+	local entry obj ns
+  entry=$(kubectl get pods -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl logs $streamBool --tail=$lineCount -n $ns $obj
+	kubectl logs $streamBool --tail=$lineCount -n $ns $obj
+}
+
+kpf() {
+	if [ -z "$1" ]; then
+		echo "No port specified"
+		return
+	fi
+
+	local entry obj ns
+	entry=$(kubectl get svc -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl port-forward -n $ns svc/$obj $1
+	kubectl port-forward -n $ns svc/$obj $1
+}
+
+kdp() {
+	_kd pod $1
+}
+
+kdd() {
+	_kd deploy $1
+}
+
+kdcron() {
+	_kd cronjob $1
+}
+
+ked() {
+	_ke deploy $1
+}
+
+kei() {
+	_ke ingresses.v1.networking.k8s.io $1
+}
+
+kes() {
+	_ke svc $1
+}
+
+kecm() {
+	_ke cm $1
+}
+
+kecron() {
+	_ke cronjob $1
+}
+
+kgd() {
+	_kyaml deploy $1
+}
+
+kgi() {
+	_kyaml ingresses.v1.networking.k8s.io $1
+}
+
+kgs() {
+	_kyaml svc $1
+}
+
+kgsa() {
+	_kyaml sa $1
+}
+
+kgcm() {
+	_kyaml cm $1
+}
+
+kgsec() {
+	_kyaml secret $1
+}
+
+ks() {
+	local _entry _obj _ns
+	_entry=$(kubectl get secret -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux)
+	_ns=$(echo $_entry | awk -F '/' '{ print $1 }')
+	_obj=$(echo $_entry | awk -F '/' '{ print $2 }')
+	if [ "$1" == "-a" ]; then
+		kubectl view-secret -n $_ns $_obj -a
+	else
+		_keys=$(kubectl get secret -n $_ns $_obj -o json | jq -r '.data | keys | .[]' | fzf-tmux -m)
+		# echo "kubectl get $1 -n $_ns $_obj -o yaml | kubectl neat -f -"
+		echo $_keys | xargs -n 1 kubectl view-secret -n $_ns $_obj
+	fi
+}
+
+kgcron() {
+	_kyaml cronjob $1
+}
+
+krp() {
+	_kr pod $1
+}
+
+krj() {
+	_kr job $1
+}
+
+krcron() {
+	_kr cronjob $1
+}
+
+krs() {
+	_kr svc $1
+}
+
+krd() {
+	_kr deploy $1
+}
+
+krsec() {
+	_kr secret $1
+}
+
+kri() {
+	_kr ingresses.v1.networking.k8s.io $1
+}
+
+kexec() {
+	_kexec $1 $2
+}
+
+_ke() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl edit $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		echo kubectl edit $1 -n $ns $obj
+		kubectl edit $1 -n $ns $obj
+	fi
+}
+
+_kd() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl describe $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		echo kubectl describe $1 -n $ns $obj
+		kubectl describe $1 -n $ns $obj
+	fi
+}
+
+_kr() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl delete $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf -m)
+		for e in $entry; do
+			ns=$(echo $e | awk -F '/' '{ print $1 }')
+			obj=$(echo $e | awk -F '/' '{ print $2 }')
+			echo kubectl delete $1 -n $ns $obj
+			kubectl delete $1 -n $ns $obj
+		done
+	fi
+}
+
+_kyaml() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl get $1 $obj -o yaml | kubectl neat -f -
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		# echo "kubectl get $1 -n $ns $obj -o yaml | kubectl neat -f -"
+		kubectl get $1 -n $ns $obj -o yaml | kubectl neat -f -
+	fi
+}
+
+_kexec() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl exec -n $ns -it $1/$obj $2
+	kubectl exec -n $ns -it $1/$obj $2
+}
+
+kcj() {
+	local entry obj ns
+	if [ -z "$1" ]; then
+		echo "No job name specified"
+		return
+	fi
+	if [ -n "$2" ]; then
+		kubectl create job --from=cronjob/$2 $1
+	else
+		entry=$(kubectl get cronjob -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf -m)
+		for e in $entry; do
+			ns=$(echo $e | awk -F '/' '{ print $1 }')
+			obj=$(echo $e | awk -F '/' '{ print $2 }')
+			echo kubectl create job -n $ns --from=cronjob/$obj $1
+			kubectl create job -n $ns --from=cronjob/$obj $1
+		done
+	fi
+}
+
+lastpass() {
+	lpass show -c --password $(lpass ls  | fzf | awk '{print $(NF)}' | sed 's/\]//g')
+}
+
+vnotes() {
+	fd --base-directory $GOPATH/notes/ -t f | fzf-tmux --multi | xargs -I % echo $GOPATH/notes/% | xargs nvim
+}
