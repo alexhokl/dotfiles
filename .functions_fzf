@@ -33,6 +33,13 @@ gb() {
   git checkout $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
 }
 
+gbd() {
+  local branches branch
+  branches=$(git --no-pager branch -vv) &&
+  branch=$(echo "$branches" | fzf +m) &&
+  git branch -D $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
+}
+
 # gco - checkout git branch (including remote branches)
 gco() {
   local branches branch
@@ -50,20 +57,89 @@ gfc() {
   git show $(echo "$commit" | sed "s/ .*//")
 }
 
-kd() {
-	local nspod pod ns
-  nspod=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
-	ns=$(echo $nspod | awk -F '/' '{ print $1 }')
-	pod=$(echo $nspod | awk -F '/' '{ print $2 }')
-	kubectl describe pod -n $ns $pod
+kl() {
+	local entry obj ns
+  entry=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl logs --tail=20 -n $ns $obj
 }
 
-kl() {
-	local nspod pod ns
-  nspod=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
-	ns=$(echo $nspod | awk -F '/' '{ print $1 }')
-	pod=$(echo $nspod | awk -F '/' '{ print $2 }')
-	kubectl logs --tail=20 -n $ns $pod
+kpf() {
+	if [ -z "$1" ]; then
+    echo "No port specified"
+    return
+	fi
+
+	local entry obj ns
+  entry=$(kubectl get svc -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl port-forward -n $ns svc/$obj $1
+}
+
+kdp() {
+	_kd pod
+}
+
+ked() {
+	_ke deploy
+}
+
+kgd() {
+	_kyaml deploy
+}
+
+kei() {
+	_ke ing
+}
+
+kgi() {
+	_kyaml ing
+}
+
+kesvc() {
+	_ke svc
+}
+
+kgsvc() {
+	_kyaml svc
+}
+
+kecm() {
+	_ke cm
+}
+
+kgcm() {
+	_kyaml cm
+}
+
+kgsec() {
+	_kyaml secret
+}
+
+_ke() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl edit $1 -n $ns $obj
+}
+
+_kd() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl describe $1 -n $ns $obj
+}
+
+_kyaml() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl get $1 -n $ns $obj -o yaml
 }
 
 lastpass() {
