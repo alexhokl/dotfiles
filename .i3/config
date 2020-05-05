@@ -180,6 +180,7 @@ bindsym Print exec "scrot -q 100 ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S
 #bindsym Shift+Print exec "swaygrab ${HOME}/Pictures/Screenshots/$(date '+%Y-%m-%d-%H-%M-%S').png"
 # Screenshot with selection
 bindsym $mod+Print exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
+bindsym $mod+Shift+p exec "sleep 0.4; scrot -q 100 -s ${HOME}'/Pictures/screenshots/%Y-%m-%d-%H-%M-%S_$wx$h.png'"
 # Screenshot capture, sway
 #bindsym Shift+Print exec "swaygrab -c ${HOME}/Pictures/Screenshots/$(date '+%Y-%m-%d-%H-%M-%S').webm"
 # Screenshot current focused window
