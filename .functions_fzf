@@ -118,6 +118,10 @@ kgsec() {
 	_kyaml secret
 }
 
+kexec() {
+	_kexec $1 $2
+}
+
 _ke() {
 	local entry obj ns
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
@@ -140,6 +144,14 @@ _kyaml() {
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
 	kubectl get $1 -n $ns $obj -o yaml
+}
+
+_kexec() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	kubectl exec -n $ns -it $1/$obj $2
 }
 
 lastpass() {
