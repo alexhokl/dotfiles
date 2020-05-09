@@ -118,6 +118,10 @@ kgsec() {
 	_kyaml secret
 }
 
+kecron() {
+	_ke cronjob
+}
+
 kexec() {
 	_kexec $1 $2
 }
