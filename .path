@@ -6,7 +6,7 @@ export GOPATH="${HOME}/git"
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin
 export PATH=${PATH}:$HOME/.rbenv/bin
-export PATH=${PATH}:$HOME/.rbenv/versions/2.7.0/bin
+export PATH=${PATH}:$HOME/.rbenv/versions/2.7.1/bin
 export PATH=${PATH}:$HOME/.local/bin
 export PATH=${PATH}:/opt/mssql-tools/bin
 export PATH=${PATH}:$GOPATH/flutter/bin
