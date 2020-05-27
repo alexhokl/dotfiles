@@ -54,11 +54,11 @@ etc: ## Installs the etc directory files.
 		sudo mkdir -p $$(dirname $$f); \
 		sudo ln -f $$file $$f; \
 	done
-	systemctl --user daemon-reload || true
-	sudo systemctl daemon-reload
-	sudo systemctl enable systemd-networkd systemd-resolved
-	sudo systemctl start systemd-networkd systemd-resolved
-	sudo ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+	# systemctl --user daemon-reload || true
+	# sudo systemctl daemon-reload
+	# sudo systemctl enable systemd-networkd systemd-resolved
+	# sudo systemctl start systemd-networkd systemd-resolved
+	# sudo ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 	LAPTOP_MODEL_NUMBER=$$(sudo dmidecode | grep "Product Name: XPS 13" | sed "s/Product Name: XPS 13 //" | xargs echo -n); \
 	if [[ "$$LAPTOP_MODEL_NUMBER" == "9300" ]]; then \
 		sudo ln -snf "$(CURDIR)/etc/X11/xorg.conf.d/dell-xps-display-9300" "$(LAPTOP_XORG_FILE)"; \
