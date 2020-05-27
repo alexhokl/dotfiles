@@ -46,11 +46,11 @@ etc: ## Installs the etc directory files.
 		sudo mkdir -p $$(dirname $$f); \
 		sudo ln -f $$file $$f; \
 	done
-	systemctl --user daemon-reload || true
-	sudo systemctl daemon-reload
-	sudo systemctl enable systemd-networkd systemd-resolved
-	sudo systemctl start systemd-networkd systemd-resolved
-	sudo ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+	# systemctl --user daemon-reload || true
+	# sudo systemctl daemon-reload
+	# sudo systemctl enable systemd-networkd systemd-resolved
+	# sudo systemctl start systemd-networkd systemd-resolved
+	# sudo ln -snf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
 .PHONY: usr
 usr: ## Installs the usr directory files.
