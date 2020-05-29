@@ -156,5 +156,7 @@ for file in ~/.{bash_prompt,aliases,functions,functions_fzf,path,dockerfunc,extr
 done
 unset file
 
-
 complete -C /usr/local/bin/vault vault
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+complete -F __start_kubectl kub
