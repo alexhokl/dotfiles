@@ -20,6 +20,8 @@ alias compose="docker-compose"
 alias pr="go-bb-pr"
 alias nuget="mono /usr/local/bin/nuget.exe"
 alias kub=kubectl
+alias kc=kubectx
+alias kn=kubens
 
 # Linux specific aliases
 alias pbcopy='xclip -selection clipboard'
