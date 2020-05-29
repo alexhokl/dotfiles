@@ -57,6 +57,11 @@ gfc() {
   git show $(echo "$commit" | sed "s/ .*//")
 }
 
+gl() (
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && git lg "${files[@]}"
+)
+
 kl() {
 	local entry obj ns
   entry=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
