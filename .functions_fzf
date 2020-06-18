@@ -152,7 +152,7 @@ _kyaml() {
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
-	kubectl get $1 -n $ns $obj -o yaml
+	kubectl get $1 -n $ns $obj -o yaml | kubectl neat
 }
 
 _kexec() {
