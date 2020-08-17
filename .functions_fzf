@@ -25,6 +25,11 @@ fh() {
   eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
 }
 
+fb() {
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && bat "${files[@]}"
+}
+
 # gb - checkout git branch
 gb() {
   local branches branch
@@ -85,6 +90,14 @@ kpf() {
 
 kdp() {
 	_kd pod
+}
+
+kdd() {
+	_kd deploy
+}
+
+kdcron() {
+	_kd cronjob
 }
 
 ked() {
