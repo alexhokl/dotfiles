@@ -140,6 +140,7 @@ done
 if hash kubectl 2>/dev/null; then
 	# shellcheck source=/dev/null
 	source <(kubectl completion bash)
+	complete -F __start_kubectl kub
 fi
 
 # source travis bash completion
