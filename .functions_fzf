@@ -22,7 +22,9 @@ fo() (
 
 # fh - repeat history
 fh() {
-  eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
+  _TEMP=$( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
+	echo $_TEMP
+  eval $_TEMP
 }
 
 fb() {
@@ -64,7 +66,7 @@ gfc() {
 
 gl() (
   IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
-  [[ -n "$files" ]] && git lg "${files[@]}"
+  [[ -n "$files" ]] && echo ${files} && git lg "${files[@]}"
 )
 
 kl() {
@@ -72,6 +74,7 @@ kl() {
   entry=$(kubectl get pods -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl logs --tail=20 -n $ns $obj
 	kubectl logs --tail=20 -n $ns $obj
 }
 
@@ -85,6 +88,7 @@ kpf() {
   entry=$(kubectl get svc -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl port-forward -n $ns svc/$obj $1
 	kubectl port-forward -n $ns svc/$obj $1
 }
 
@@ -136,8 +140,32 @@ kgsec() {
 	_kyaml secret
 }
 
+kgcron() {
+	_kyaml cronjob
+}
+
 kecron() {
 	_ke cronjob
+}
+
+krp() {
+	_kr pod
+}
+
+krj() {
+	_kr job
+}
+
+krcron() {
+	_kr cronjob
+}
+
+krsvc() {
+	_kr svc
+}
+
+krd() {
+	_kr deploy
 }
 
 kexec() {
@@ -149,6 +177,7 @@ _ke() {
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl edit $1 -n $ns $obj
 	kubectl edit $1 -n $ns $obj
 }
 
@@ -157,7 +186,17 @@ _kd() {
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl describe $1 -n $ns $obj
 	kubectl describe $1 -n $ns $obj
+}
+
+_kr() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl delete $1 -n $ns $obj
+	kubectl delete $1 -n $ns $obj
 }
 
 _kyaml() {
@@ -165,6 +204,7 @@ _kyaml() {
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl get $1 -n $ns $obj -o yaml | kubectl neat
 	kubectl get $1 -n $ns $obj -o yaml | kubectl neat
 }
 
@@ -173,6 +213,7 @@ _kexec() {
   entry=$(kubectl get "$1" -A -o wide | grep -v NAMESPACE | awk '{ print $1 "/" $2 }' | fzf)
 	ns=$(echo $entry | awk -F '/' '{ print $1 }')
 	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl exec -n $ns -it $1/$obj $2
 	kubectl exec -n $ns -it $1/$obj $2
 }
 
