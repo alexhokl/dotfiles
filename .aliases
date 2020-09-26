@@ -14,14 +14,18 @@ for opener in browser-exec xdg-open cmd.exe cygstart "start" open; do
 	fi
 done
 
-alias gc="gcloud"
-alias d="dotnet"
 alias compose="docker-compose"
 alias pr="go-bb-pr"
 alias nuget="mono /usr/local/bin/nuget.exe"
 alias kub=kubectl
 alias kc=kubectx
 alias kn=kubens
+alias wp="watch kubectl get pod"
+alias wj="watch kubectl get job"
+alias klp="kubectl get pod"
+alias kls="kubectl get svc"
+alias kli="kubectl get ing"
+alias kld="kubectl get deploy"
 
 # Linux specific aliases
 alias pbcopy='xclip -selection clipboard'
