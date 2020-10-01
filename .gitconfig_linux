@@ -4,6 +4,7 @@
 [user]
   signingkey = EE510D8CB9F12960
   # signingkey = 0x81A84610E37D4430
+  # signingkey = 69E7E42AFB23B606
 
 [commit]
   gpgsign = true
