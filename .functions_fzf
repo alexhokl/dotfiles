@@ -5,6 +5,7 @@
 #   - Exit if there's no match (--exit-0)
 fe() (
   IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  echo $EDITOR $files
   [[ -n "$files" ]] && ${EDITOR:-vim} "${files[@]}"
 )
 
