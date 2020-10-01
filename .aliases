@@ -26,6 +26,9 @@ alias klp="kubectl get pod"
 alias kls="kubectl get svc"
 alias kli="kubectl get ing"
 alias kld="kubectl get deploy"
+alias klsec="kubectl get secret"
+alias klcron="kubectl get cronjob"
+alias klj="kubectl get job"
 
 # Linux specific aliases
 alias pbcopy='xclip -selection clipboard'
