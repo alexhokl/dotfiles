@@ -9,9 +9,3 @@
 
 [gpg]
   program = gpg2
-
-[credential]
-	helper = store --file ~/.git-credentials
-	helper = cache --timeout 30000
-
-
