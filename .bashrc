@@ -163,6 +163,12 @@ for file in ~/.{bash_prompt,aliases,functions,functions_fzf,path,dockerfunc,extr
 done
 unset file
 
+file=$GOPATH/installation/debian/functions
+if [[ -r "$file" ]] && [[ -f "$file" ]]; then
+	source "$file"
+fi
+unset file
+
 complete -C /usr/local/bin/vault vault
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
