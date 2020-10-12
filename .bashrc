@@ -165,3 +165,6 @@ unset file
 
 
 complete -C /usr/local/bin/vault vault
+
+
+complete -F __start_kubectl kub
