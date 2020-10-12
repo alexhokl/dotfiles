@@ -165,6 +165,12 @@ if [[ -f "${HOME}/.travis/travis.sh" ]]; then
 fi
 
 
+file=$GOPATH/installation/debian/functions
+if [[ -r "$file" ]] && [[ -f "$file" ]]; then
+	source "$file"
+fi
+unset file
+
 complete -C /usr/local/bin/vault vault
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
