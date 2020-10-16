@@ -1,7 +1,5 @@
 # dotfiles
 
-[![make test](https://github.com/jessfraz/dotfiles/workflows/make%20test/badge.svg)](https://github.com/jessfraz/dotfiles/actions?query=workflow%3A%22make+test%22+branch%3Amaster)
-
 **Table of Contents**
 
 <!-- toc -->
@@ -58,7 +56,7 @@ export GMAIL_FROM=from-email@you.com
 ### `.vim`
 
 For my `.vimrc` and `.vim` dotfiles see
-[github.com/jessfraz/.vim](https://github.com/jessfraz/.vim).
+[github.com/alexhokl/.vim](https://github.com/alexhokl/.vim).
 
 ## Contributing
 
