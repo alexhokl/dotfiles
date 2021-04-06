@@ -173,3 +173,4 @@ complete -C /usr/local/bin/vault vault
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 complete -F __start_kubectl kub
+source "$HOME/.cargo/env"
