@@ -1,0 +1,6 @@
+Host github.com
+  User git
+
+Host bitbucket.org
+  User git
+
