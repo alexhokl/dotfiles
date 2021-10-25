@@ -1,0 +1,65 @@
+! vim: set ft=xdefaults:
+! Set $TERM variable
+
+! reference: https://github.com/morhetz/gruvbox-contrib/blob/master/xresources/gruvbox-dark.xresources
+
+#define S_base04        #32302f
+#define S_base03        #928374
+#define S_base02        #282828
+#define S_base01        #b8bb26
+#define S_base00        #ebdbb2
+#define S_base0         #83a598
+#define S_base1         #8ec07c
+#define S_base2         #a89984
+#define S_base3         #ebdbb2
+#define S_yellow        #d79921
+#define S_orange        #fb4934
+#define S_red           #cc241d
+#define S_magenta       #b16286
+#define S_violet        #d3869b
+#define S_blue          #458588
+#define S_cyan          #689d6a
+#define S_green         #98971a
+
+*background:            S_base04
+URxvt*background:       [90]S_base04
+*foreground:            S_base00
+*depth:                 32
+!!*fading:                40
+!!*fadeColor:             S_base03
+*cursorColor:           S_base1
+*pointerColorBackground:S_base01
+*pointerColorForeground:S_base1
+
+
+!! black dark/light
+*color0:                S_base02
+*color8:                S_base03
+
+!! red dark/light
+*color1:                S_red
+*color9:                S_orange
+
+!! green dark/light
+*color2:                S_green
+*color10:               S_base01
+
+!! yellow dark/light
+*color3:                S_yellow
+*color11:               S_base00
+
+!! blue dark/light
+*color4:                S_blue
+*color12:               S_base0
+
+!! magenta dark/light
+*color5:                S_magenta
+*color13:               S_violet
+
+!! cyan dark/light
+*color6:                S_cyan
+*color14:               S_base1
+
+!! white dark/light
+*color7:                S_base2
+*color15:               S_base3
