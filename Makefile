@@ -38,7 +38,7 @@ dotfiles: ## Installs the dotfiles.
 		if [[ "$$OSTYPE" == "darwin"* ]]; then \
 			sudo ln -snf /opt/homebrew/bin/pinentry-mac /usr/local/bin/pinentry; \
 		else \
-			sudo ln -snf /usr/bin/pinentry-curses /usr/local/bin/pinentry; \
+			sudo ln -snf /usr/bin/pinentry-qt /usr/local/bin/pinentry; \
 		fi; \
 	fi;
 	mkdir -p $(HOME)/Pictures;
