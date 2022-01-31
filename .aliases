@@ -34,8 +34,8 @@ alias klcron="kubectl get cronjob"
 alias klj="kubectl get job"
 alias klcm="kubectl get cm"
 alias klsa="kubectl get sa"
-alias klcert="kubectl get certificates.cert-manager.io && kubectl get orders.acme.cert-manager.io && kubectl get challenges.acme.cert-manager.io"
 alias tmux="TERM=tmux-256color tmux"
+alias klcert="echo certificates && kubectl get certificates.cert-manager.io && echo orders && kubectl get orders.acme.cert-manager.io && echo challenges && kubectl get challenges.acme.cert-manager.io"
 
 # Linux specific aliases, work on both MacOS and Linux.
 pbcopy() {
