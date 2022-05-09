@@ -164,8 +164,16 @@ if [[ -f "${HOME}/.travis/travis.sh" ]]; then
 	source "${HOME}/.travis/travis.sh"
 fi
 
+if [[ -n "$(which lsb_release)" ]]; then
+	if [[ "$(lsb_release -is)" != "Arch" ]] then
+		file=$GOPATH/installation/debian/functions
+	else
+		file=$GOPATH/installation/archlinux/functions
+	fi
+else
+	file=$GOPATH/installation/archlinux/functions
+fi
 
-file=$GOPATH/installation/debian/functions
 if [[ -r "$file" ]] && [[ -f "$file" ]]; then
 	source "$file"
 fi
