@@ -49,3 +49,6 @@ fi
 export XDG_DATA_DIRS=/usr/share/
 
 export FZF_DEFAULT_COMMAND="rg --ignore --hidden --files"
+
+# for mssql-cli issues with ICU
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
