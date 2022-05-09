@@ -40,12 +40,7 @@ alias klcert="echo certificates && kubectl get certificates.cert-manager.io && e
 # Linux specific aliases, work on both MacOS and Linux.
 pbcopy() {
 	stdin=$(</dev/stdin);
-	pbcopy="$(which pbcopy)";
-	if [[ -n "$pbcopy" ]]; then
-		echo "$stdin" | "$pbcopy"
-	else
-		echo "$stdin" | xclip -selection clipboard
-	fi
+	echo "$stdin" | xclip -selection clipboard
 }
 pbpaste() {
 	pbpaste="$(which pbpaste)";
