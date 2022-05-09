@@ -33,6 +33,8 @@ export PATH="/usr/local/opt/gnu-getopt/bin:${PATH}"
 # add mysql
 export PATH="/opt/homebrew/opt/mysql-client/bin:${PATH}"
 
+export PATH="${HOME}/.local/share/gem/ruby/3.0.0/bin:${PATH}"
+
 # update cdpath
 export CDPATH=${CDPATH}:${GOPATH}
 export CDPATH=${CDPATH}:${GOPATH}/work
