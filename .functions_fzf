@@ -182,6 +182,10 @@ kgd() {
 	_kyaml deploy $1
 }
 
+kgp() {
+	_kyaml pods $1
+}
+
 kgi() {
 	_kyaml ingresses.v1.networking.k8s.io $1
 }
@@ -242,6 +246,10 @@ krd() {
 
 krsec() {
 	_kr secret $1
+}
+
+krcm() {
+	_kr cm $1
 }
 
 kri() {
