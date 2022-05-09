@@ -21,7 +21,7 @@ fo() (
 
 # fh - repeat history
 fh() {
-  _TEMP=$( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
+  _TEMP=$( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf-tmux +s --tac | sed -r 's/ *[0-9]*\*? *//' | sed -r 's/\\/\\\\/g')
 	echo $_TEMP
   eval $_TEMP
 }
@@ -35,14 +35,14 @@ fb() {
 gb() {
   local branches branch
   branches=$(git --no-pager branch -vv) &&
-  branch=$(echo "$branches" | fzf +m) &&
+  branch=$(echo "$branches" | fzf-tmux +m) &&
   git checkout $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
 }
 
 gbd() {
   local branches branch
   branches=$(git --no-pager branch -vv) &&
-  branch=$(echo "$branches" | fzf +m) &&
+  branch=$(echo "$branches" | fzf-tmux +m) &&
   git branch -D $(echo "$branch" | awk '{print $1}' | sed "s/.* //")
 }
 
@@ -78,7 +78,7 @@ gmb() {
 gfc() {
   local commits commit
   commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
-  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  commit=$(echo "$commits" | fzf-tmux --tac +s +m -e) &&
   git show $(echo "$commit" | sed "s/ .*//")
 }
 
@@ -91,19 +91,19 @@ gls() (
   local commits commit
   IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
   commits=$(git log --pretty=oneline --abbrev-commit --reverse "$files") &&
-  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  commit=$(echo "$commits" | fzf-tmux --tac +s +m -e) &&
   git show $(echo "$commit" | sed "s/ .*//") "$files"
 )
 
 gfm() {
   local commits commit
   commits=$(git log --pretty=format:'%C(yellow)%h	%Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --reverse --decorate --date=short --grep=$1) &&
-  commit=$(echo "$commits" | fzf --tac +s +m -e) &&
+  commit=$(echo "$commits" | fzf-tmux --tac +s +m -e) &&
   git show $(echo "$commit" | cut -f 1)
 }
 
 ga() {
-	git ls-files --modified --others --exclude-standard | fzf -m | xargs git add
+	git ls-files --modified --others --exclude-standard | fzf-tmux -m | xargs git add
 }
 
 kl() {
@@ -291,7 +291,7 @@ _kr() {
 	if [ -n "$2" ]; then
 		kubectl delete $1 $obj
 	else
-		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf -m)
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux -m)
 		for e in $entry; do
 			ns=$(echo $e | awk -F '/' '{ print $1 }')
 			obj=$(echo $e | awk -F '/' '{ print $2 }')
@@ -332,7 +332,7 @@ kcj() {
 	if [ -n "$2" ]; then
 		kubectl create job --from=cronjob/$2 $1
 	else
-		entry=$(kubectl get cronjob -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf -m)
+		entry=$(kubectl get cronjob -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux -m)
 		for e in $entry; do
 			ns=$(echo $e | awk -F '/' '{ print $1 }')
 			obj=$(echo $e | awk -F '/' '{ print $2 }')
@@ -343,7 +343,7 @@ kcj() {
 }
 
 lastpass() {
-	lpass show -c --password $(lpass ls  | fzf | awk '{print $(NF)}' | sed 's/\]//g')
+	lpass show -c --password $(lpass ls  | fzf-tmux | awk '{print $(NF)}' | sed 's/\]//g')
 }
 
 vnotes() {
