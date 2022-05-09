@@ -1017,12 +1017,12 @@ steam(){
 		--name steam \
 		${DOCKER_REPO_PREFIX}/steam
 }
-t(){
-	docker run -t --rm \
-		-v "${HOME}/.trc:/root/.trc" \
-		--log-driver none \
-		${DOCKER_REPO_PREFIX}/t "$@"
-}
+# t(){
+# 	docker run -t --rm \
+# 		-v "${HOME}/.trc:/root/.trc" \
+# 		--log-driver none \
+# 		${DOCKER_REPO_PREFIX}/t "$@"
+# }
 tarsnap(){
 	docker run --rm -it \
 		-v "${HOME}/.tarsnaprc:/root/.tarsnaprc" \
