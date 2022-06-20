@@ -1,15 +1,16 @@
 #!/bin/sh
 
-choices="laptop\nmirror\ndesktop\ndual\nauto"
+choices='laptop mirror desktop dual auto'
 
-chosen=$(echo "$choices" | rofi -dmenu)
+chosen=$(echo "$choices" | tr ' ' '\n' | rofi -dmenu)
 
+PRIMARY_DISPLAY=$(xrandr | grep -w primary | head -n 1 | cut -d ' ' -f 1)
 EXTERNAL_DISPLAY=$(xrandr | grep -w connected | grep -v eDP | head -n 1 | cut -d ' ' -f 1)
 
 case "$chosen" in
-	laptop) xrandr --output eDP-1 --mode 3840x2160 && xrandr --output $EXTERNAL_DISPLAY --off ;;
-	mirror) xrandr --output $EXTERNAL_DISPLAY --same-as eDP-1 ;;
-	desktop) xrandr --output $EXTERNAL_DISPLAY --mode 3840x2160 && xrandr --output eDP-1 --off ;;
-	dual) xrandr --output $EXTERNAL_DISPLAY --mode 3840x2160 && xrandr --output eDP-1 --mode 3840x2160 --below $EXTERNAL_DISPLAY ;;
+	laptop) xrandr --output $PRIMARY_DISPLAY --mode 3840x2160 && xrandr --output $EXTERNAL_DISPLAY --off ;;
+	mirror) xrandr --output $EXTERNAL_DISPLAY --same-as $PRIMARY_DISPLAY ;;
+	desktop) xrandr --output $EXTERNAL_DISPLAY --mode 3840x2160 && xrandr --output $PRIMARY_DISPLAY --off ;;
+	dual) xrandr --output $EXTERNAL_DISPLAY --mode 3840x2160 && xrandr --output $PRIMARY_DISPLAY --mode 3840x2160 --below $EXTERNAL_DISPLAY ;;
 	auto) xrandr --auto ;;
 esac
