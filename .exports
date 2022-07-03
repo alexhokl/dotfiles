@@ -52,3 +52,5 @@ export FZF_DEFAULT_COMMAND="rg --ignore --files"
 
 # for mssql-cli issues with ICU
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
