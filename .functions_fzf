@@ -349,3 +349,40 @@ lastpass() {
 vnotes() {
 	fd --base-directory $GOPATH/notes/ -t f | fzf-tmux --multi | xargs -I % echo $GOPATH/notes/% | xargs nvim
 }
+
+az_nsg_rule_list() {
+	local rg nsg
+	rg=$(az network nsg list | jq -r '.[] | .resourceGroup' | sort | uniq | fzf-tmux)
+	nsg=$(az network nsg list -g $rg| jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .name'
+}
+
+az_nsg_rule_show() {
+	local rg nsg rule
+	rg=$(az network nsg list | jq -r '.[] | .resourceGroup' | sort | uniq | fzf-tmux)
+	nsg=$(az network nsg list -g $rg| jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	rule=$(az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	az network nsg rule show -n $rule -g $rg --nsg-name $nsg
+}
+
+az_nsg_rule_delete() {
+	local rg nsg
+	rg=$(az network nsg list | jq -r '.[] | .resourceGroup' | sort | uniq | fzf-tmux)
+	nsg=$(az network nsg list -g $rg| jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .name' | sort | uniq | fzf-tmux -m | xargs -n 1 az network nsg rule delete -g $rg --nsg-name $nsg -n
+}
+
+az_nsg_rule_update_source_ip() {
+	if [ -z "$1" ]; then
+		echo "No IP address specified"
+		return
+	fi
+	local rg nsg rule
+	rg=$(az network nsg list | jq -r '.[] | .resourceGroup' | sort | uniq | fzf-tmux)
+	nsg=$(az network nsg list -g $rg| jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	rule=$(az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	old_ip=$(az network nsg rule show -n $rule -g $rg --nsg-name $nsg | jq -r '.sourceAddressPrefix')
+	az network nsg rule update -g $rg --nsg-name $nsg -n $rule --source-address-prefix "${1}"
+	echo IP address changed from $old_ip to $1
+}
+
