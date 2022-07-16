@@ -25,7 +25,7 @@ dotfiles: ## Installs the dotfiles.
 		ln -sfn $$file $(HOME)/.gnupg/$$f; \
 	done; \
 	ln -fn $(CURDIR)/gitignore $(HOME)/.gitignore;
-	git update-index --skip-worktree $(CURDIR)/.gitconfig;
+	# git update-index --skip-worktree $(CURDIR)/.gitconfig;
 	mkdir -p $(HOME)/.config;
 	ln -snf $(CURDIR)/.i3 $(HOME)/.config/sway;
 	ln -snf $(CURDIR)/.config/kdiff3rc $(HOME)/.config/kdiff3rc;
@@ -35,15 +35,22 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/.fonts $(HOME)/.local/share/fonts;
 	ln -snf $(CURDIR)/.bash_profile $(HOME)/.profile;
 	if [ -f /usr/local/bin/pinentry ]; then \
-		sudo ln -snf /usr/bin/pinentry /usr/local/bin/pinentry; \
+		if [[ "$$OSTYPE" == "darwin"* ]]; then \
+			sudo ln -snf /opt/homebrew/bin/pinentry-mac /usr/local/bin/pinentry; \
+		else \
+			sudo ln -snf /usr/bin/pinentry-curses /usr/local/bin/pinentry; \
+		fi; \
 	fi;
 	mkdir -p $(HOME)/Pictures;
 	#ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
 	mkdir -p $(HOME)/.config/fontconfig;
 	ln -snf $(CURDIR)/.config/fontconfig/fontconfig.conf $(HOME)/.config/fontconfig/fontconfig.conf;
-	xrdb -merge $(HOME)/.Xdefaults || true
-	xrdb -merge $(HOME)/.Xresources || true
-	fc-cache -f -v || true
+
+	if [[ "$$OSTYPE" != "darwin"* ]]; then \
+		xrdb -merge $(HOME)/.Xdefaults || true \
+		xrdb -merge $(HOME)/.Xresources || true \
+		fc-cache -f -v || true \
+	fi;
 
 # Get the laptop's model number so we can generate xorg specific files.
 LAPTOP_XORG_FILE=/etc/X11/xorg.conf.d/10-dell-xps-display.conf
