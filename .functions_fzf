@@ -386,3 +386,13 @@ az_nsg_rule_update_source_ip() {
 	echo IP address changed from $old_ip to $1
 }
 
+az_aks_get_credentials() {
+	local rg aks
+	rg=$(az aks list | jq -r '.[] | .resourceGroup' | sort | uniq | fzf-tmux)
+	aks=$(az aks list -g $rg | jq -r '.[] | .name' | sort | uniq | fzf-tmux)
+	if [ -z "$1" ]; then
+		az aks get-credentials -g $rg -n $aks
+	else
+		az aks get-credentials -g $rg -n $aks --context $1
+	fi
+}
