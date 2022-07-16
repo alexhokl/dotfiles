@@ -7,7 +7,7 @@ export GOBIN="${GOPATH}/bin"
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin:/usr/local/sbin
 export PATH=${PATH}:$HOME/.rbenv/bin
-export PATH=${PATH}:$HOME/.rbenv/versions/3.0.1/bin
+export PATH=${PATH}:$HOME/.rbenv/versions/3.1.1/bin
 export PATH=${PATH}:$HOME/.local/bin
 export PATH=${PATH}:/opt/mssql-tools/bin
 export PATH=${PATH}:$GOPATH/flutter/bin
