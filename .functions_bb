@@ -1,0 +1,12 @@
+#!/bin/bash
+
+bb_environments() {
+  bb list env | gum table -w 30,10
+}
+
+bb_environment_variables() {
+	local selected_env
+
+	selected_env=$(bb list env | gum table -w 30,10 | awk -F ',' '{print $1}')
+	bb list env-var --id $selected_env
+}

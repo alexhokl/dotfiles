@@ -615,3 +615,4 @@ source ${HOME}/.functions_cloudflare
 source ${HOME}/.functions_kubectl
 source ${HOME}/.functions_git
 source ${HOME}/.functions_gcp
+source ${HOME}/.functions_bb
