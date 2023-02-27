@@ -1,0 +1,77 @@
+#!/bin/bash
+
+bw_generate_password() {
+	bw generate -lusn --length 20
+}
+
+bw_generate_password_no_symbol() {
+	bw generate -lun --length 20
+}
+
+bw_generate_password_short() {
+	bw generate -lun --length 8
+}
+
+bw_folders_list() {
+	if [ -z "$(which bw)" ]; then
+		echo "bw has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	bw list folders | jq -r '.[] | .name + "," + .id' | sort
+}
+
+bw_folders_create() {
+	if [ -z "$(which bw)" ]; then
+		echo "bw has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local name
+
+	name=$(gum input --header "Enter a new folder name")
+	echo "{\"name\":\"${name}\"}" | bw encode | bw create folder
+}
+
+bw_items_get() {
+	if [ -z "$(which bw)" ]; then
+		echo "bw has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local selection selected_id list selected_item
+	list=$(mktemp)
+
+	selection=$(bw_folders_list | gum table -c "Folder,ID" -w "50,50")
+	if [ -z "${selection}" ]; then
+		echo "No folder selected"
+		return
+	fi
+
+	selected_id=$(echo "${selection}" | awk -F, '{print $2}')
+
+	bw list items --folderid $selected_id > $list
+	selected_item=$(cat $list | jq -r '.[] | .name' | sort | gum filter)
+	if [ -z "${selected_item}" ]; then
+		echo "No item selected"
+		return
+	fi
+
+	cat $list | jq -r ".[] | select(.name == \"${selected_item}\")"
+}
