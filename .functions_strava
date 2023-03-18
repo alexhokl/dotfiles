@@ -1,0 +1,51 @@
+#!/bin/bash
+
+function strava_segement_efforts() {
+	if [ -z "$(which strava-cli)" ]; then
+		echo "strava-cli has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local segment segment_id
+
+	segment=$(strava-cli list segment --format json | jq -r '.[] | (.id|tostring) + " " + .name' | gum filter --limit=1)
+	if [ -z "$segment" ]; then
+		echo "No segment found"
+		return
+	fi
+	segment_id=$(echo $segment | awk '{print $1}')
+	strava-cli list segment-effort --id $segment_id
+}
+
+function strava_activity_edit() {
+	if [ -z "$(which strava-cli)" ]; then
+		echo "strava-cli has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local activity activity_id
+
+	activity=$(strava-cli list activity --format json | jq -r '.[] | .start_date + " " + (.id|tostring) + " " + .name' | gum filter --limit=1)
+	if [ -z "$activity" ]; then
+		echo "No activity found"
+		return
+	fi
+	activity_id=$(echo $activity | awk '{print $2}')
+	strava-cli edit activity --id $activity_id
+}
