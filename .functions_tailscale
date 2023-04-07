@@ -1,0 +1,22 @@
+#!/bin/bash
+
+ts_send_file() {
+	local selected_node node_ip cmd
+
+	if [[ "$OSTYPE" == darwin* ]]; then
+		cmd="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+	else
+		cmd="tailscale"
+	fi
+
+	selected_node=$($cmd status | awk '{print $2","$1}' | gum filter --header "Select a node" --limit 1)
+	if [ -z "$selected_node" ]; then
+		echo "No node selected"
+		return 1
+	fi
+
+	node_ip=$(echo "$selected_node" | cut -d, -f1)
+
+	gum file | xargs -I {} $cmd file cp {} $node_ip:
+}
+

@@ -618,3 +618,4 @@ source ${HOME}/.functions_gcp
 source ${HOME}/.functions_bb
 source ${HOME}/.functions_bw
 source ${HOME}/.functions_strava
+source ${HOME}/.functions_tailscale
