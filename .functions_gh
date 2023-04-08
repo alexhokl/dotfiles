@@ -1,0 +1,71 @@
+#!/bin/bash
+
+gh_issue_edit() {
+	if [ -z "$(which gh)" ]; then
+		echo "gh has not been installed"
+		return
+	fi
+
+	local issue dir original updated
+
+	issue=$(gh issue list --json number,title --jq '.[] | (.number|tostring) + " " + .title' | gum filter --limit 1 | awk '{print $1}')
+
+	dir=$(mktemp -d)
+	original="$dir/original.md"
+	updated="$dir/updated.md"
+	gh issue view $issue --json body --jq '.body' > $original
+	cp $original $updated
+	$EDITOR $updated
+	if [ "$(diff $original $updated)" != "" ]; then
+		gh issue edit $issue --body-file $updated
+	else
+		echo No changes made
+	fi
+}
+
+gh_issue_create() {
+	if [ -z "$GH_REPO" ]; then
+		echo "GH_REPO is not set"
+		return
+	fi
+	if [ -z "$(which gh)" ]; then
+		echo "gh has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$EDITOR" ]; then
+		echo "EDITOR is not set"
+		return
+	fi
+
+	local title labels body_file
+
+	owner=$(echo $GH_REPO | cut -d/ -f1)
+	if [ -z "$owner" ]; then
+		echo "Reposiroty owner is not set"
+		return
+	fi
+
+	title=$(gum input --header "Issue title")
+	if [ -z "$title" ]; then
+		echo "Title is required"
+		return
+	fi
+
+	labels=$(gh label list --json name --jq ".[] | .name" | gum filter --no-limit | xargs | sed 's/ /,/g')
+	if [ -z "$labels" ]; then
+		echo "No labels selected"
+		return
+	fi
+
+	echo opening $EDITOR to write the body of the issue...
+	sleep 1
+
+	body_file=$(mktemp).md
+	$EDITOR $body_file
+
+	gh issue create --title "$title" --body-file $body_file --label "$labels" --project todo
+}
