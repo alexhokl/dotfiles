@@ -206,9 +206,12 @@ fi
 [ -f /opt/homebrew/opt/fzf/shell/key-bindings.bash ] && source /opt/homebrew/opt/fzf/shell/key-bindings.bash
 [ -f /opt/homebrew/opt/fzf/shell/completion.bash ] && source /opt/homebrew/opt/fzf/shell/completion.bash
 [ -f $HOME/.config/flutter/bash_completion ] && source $HOME/.config/flutter/bash_completion
+[ -f $HOME/.local/share/atuin/atuin.bash ] && source $HOME/.local/share/atuin/atuin.bash
 
 if command -v brew &> /dev/null; then
 	source "$(brew --prefix)/share/google-cloud-sdk/path.bash.inc"
 fi
 
 complete -F __start_kubectl kub
+
+eval "$(atuin init bash --disable-up-arrow)"
