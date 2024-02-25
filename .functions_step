@@ -1,0 +1,44 @@
+#!/bin/bash
+
+function step_certificate_inspect() {
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local domain
+
+	domain=$(gum input --header "Enter the domain name")
+	if [ -z "$domain" ]; then
+		echo No domain entered
+		return
+	fi
+
+	step certificate inspect https://$domain
+}
+
+function step_certificate_validity() {
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local domain
+
+	domain=$(gum input --header "Enter the domain name")
+	if [ -z "$domain" ]; then
+		echo No domain entered
+		return
+	fi
+
+	step certificate inspect https://$domain | jq -r '.validity'
+}
+
