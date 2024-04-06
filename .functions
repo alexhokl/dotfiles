@@ -611,3 +611,4 @@ vgd() {
 
 source ${HOME}/.functions_fzf
 source ${HOME}/.functions_azure
+source ${HOME}/.functions_cloudflare

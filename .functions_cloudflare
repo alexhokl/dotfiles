@@ -1,0 +1,176 @@
+#!/bin/bash
+
+cloudflare_verify_token() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+
+	xh -A bearer -a $CLOUDFLARE_TOKEN -b https://api.cloudflare.com/client/v4/user/tokens/verify
+}
+
+cloudflare_list_zones() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+
+	xh -A bearer -a $CLOUDFLARE_TOKEN -b https://api.cloudflare.com/client/v4/zones | jq -r '.result[] | .id + ", " + .name'
+}
+
+cloudflare_list_dns_records() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local zone_id
+	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
+	xh -b -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records | jq -r '.result[] | .name + "," + .type + "," + .content + "," + .id'
+}
+
+cloudflare_show_dns_record() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local zone_id
+	records=$(mktemp)
+	selected_name=$(mktemp)
+	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
+	xh -b -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records | jq '[.result[] | {name:.name, type:.type, value:.content}]' > $records
+	echo "${records}"
+	cat $records | jq -r '.[] | .name' | gum filter > $selected_name
+	for name in $(cat $selected_name); do
+		cat $records | jq -r ".[] | select(.name == \"$name\") | .name + \", \" + .type + \", \" + .value"
+	done
+}
+
+cloudflare_add_dns_record() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local zone_id
+	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
+	local name type value
+	name=$(gum input --placeholder "Enter DNS record name")
+	if [ -z "$name" ]; then
+		echo "No DNS record name specified"
+		return
+	fi
+	type=$(gum input --placeholder "Enter DNS record type")
+	if [ -z "$type" ]; then
+		echo "No DNS record type specified"
+		return
+	fi
+	value=$(gum input --placeholder "Enter DNS record value")
+	if [ -z "$value" ]; then
+		echo "No DNS record value specified"
+		return
+	fi
+	xh post -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records type=$type name=$name content=$value ttl:=3600 proxied:=false
+}
+
+cloudflare_delete_dns_records() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	selected_records=$(mktemp)
+	local zone_id
+	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
+	xh -b -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records | jq -r '.result[] | .name + "," + .type + "," + .content + "," + .id + "," + .zone_id' | gum filter --no-limit > $selected_records
+	for record in $(cat $selected_records); do
+		record_id=$(echo $record | awk -F ',' '{ print $4 }')
+		xh delete -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id
+	done
+}
+
+cloudflare_update_dns_record_value() {
+	if [ -z "$CLOUDFLARE_TOKEN" ]; then
+		echo "CLOUDFLARE_TOKEN has not been configured"
+		return
+	fi
+	if [ -z "$(which xh)" ]; then
+		echo "xh has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	selected_records=$(mktemp)
+	local zone_id value
+	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
+	xh -b -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records | jq -r '.result[] | .name + "," + .type + "," + .content + "," + .id + "," + .zone_id' | gum filter > $selected_records
+	value=$(gum input --placeholder "Enter new DNS record value" --value "$(cat $selected_records | awk -F ',' '{ print $3 }')")
+	for record in $(cat $selected_records); do
+		record_id=$(echo $record | awk -F ',' '{ print $4 }')
+		xh patch -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id content=$value
+	done
+}
