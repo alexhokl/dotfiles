@@ -1,0 +1,277 @@
+#!/bin/bash
+
+kl() {
+	echo "Stream logs [y]? "
+	read streamBool
+	echo "Tail lines [0] = "
+	read lineCount
+	if [ -z "$streamBool" ]; then
+		streamBool=" -f "
+	else
+		if [ "$streamBool" = "y" ]; then
+			streamBool=" -f "
+		else
+			streamBool=""
+		fi
+	fi
+	if [ -z "$lineCount" ]; then
+		lineCount=0
+	fi
+
+	local entry obj ns
+  entry=$(kubectl get pods -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl logs $streamBool --tail=$lineCount -n $ns $obj
+	kubectl logs $streamBool --tail=$lineCount -n $ns $obj
+}
+
+kpf() {
+	if [ -z "$1" ]; then
+		echo "No port specified"
+		return
+	fi
+
+	local entry obj ns
+	entry=$(kubectl get svc -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl port-forward -n $ns svc/$obj $1
+	kubectl port-forward -n $ns svc/$obj $1
+}
+
+kdp() {
+	_kd pod $1
+}
+
+kdd() {
+	_kd deploy $1
+}
+
+kdcron() {
+	_kd cronjob $1
+}
+
+kdpvc() {
+	_kd pvc $1
+}
+
+kdpv() {
+	_kd pv $1
+}
+
+ked() {
+	_ke deploy $1
+}
+
+kei() {
+	_ke ingresses.v1.networking.k8s.io $1
+}
+
+kes() {
+	_ke svc $1
+}
+
+kecm() {
+	_ke cm $1
+}
+
+kecron() {
+	_ke cronjob $1
+}
+
+kesecc() {
+	_ke secretproviderclasses.secrets-store.csi.x-k8s.io $1
+}
+
+kepvc() {
+	_ke pvc $1
+}
+
+kesa() {
+	_ke sa $1
+}
+
+kgd() {
+	_kyaml deploy $1
+}
+
+kgp() {
+	_kyaml pods $1
+}
+
+kgi() {
+	_kyaml ingresses.v1.networking.k8s.io $1
+}
+
+kgs() {
+	_kyaml svc $1
+}
+
+kgsa() {
+	_kyaml sa $1
+}
+
+kgcm() {
+	_kyaml cm $1
+}
+
+kgsec() {
+	_kyaml secret $1
+}
+
+kgsecc() {
+	_kyaml secretproviderclasses.secrets-store.csi.x-k8s.io $1
+}
+
+kgpvc() {
+	_kyaml pvc $1
+}
+
+kgpv() {
+	_kyaml pv $1
+}
+
+ks() {
+	local _entry _obj _ns
+	_entry=$(kubectl get secret -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux)
+	_ns=$(echo $_entry | awk -F '/' '{ print $1 }')
+	_obj=$(echo $_entry | awk -F '/' '{ print $2 }')
+	if [ "$1" == "-a" ]; then
+		kubectl view-secret -n $_ns $_obj -a
+	else
+		_keys=$(kubectl get secret -n $_ns $_obj -o json | jq -r '.data | keys | .[]' | fzf-tmux -m)
+		# echo "kubectl get $1 -n $_ns $_obj -o yaml | kubectl neat -f -"
+		echo $_keys | xargs -n 1 kubectl view-secret -n $_ns $_obj
+	fi
+}
+
+kgcron() {
+	_kyaml cronjob $1
+}
+
+krp() {
+	_kr pod $1
+}
+
+krj() {
+	_kr job $1
+}
+
+krcron() {
+	_kr cronjob $1
+}
+
+krs() {
+	_kr svc $1
+}
+
+krd() {
+	_kr deploy $1
+}
+
+krsec() {
+	_kr secret $1
+}
+
+krcm() {
+	_kr cm $1
+}
+
+kri() {
+	_kr ingresses.v1.networking.k8s.io $1
+}
+
+krpvc() {
+	_kr pvc $1
+}
+
+krsa() {
+	_kr sa $1
+}
+
+kexec() {
+	_kexec $1 $2
+}
+
+_ke() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl edit $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		echo kubectl edit $1 -n $ns $obj
+		kubectl edit $1 -n $ns $obj
+	fi
+}
+
+_kd() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl describe $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		echo kubectl describe $1 -n $ns $obj
+		kubectl describe $1 -n $ns $obj
+	fi
+}
+
+_kr() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl delete $1 $obj
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux -m)
+		for e in $entry; do
+			ns=$(echo $e | awk -F '/' '{ print $1 }')
+			obj=$(echo $e | awk -F '/' '{ print $2 }')
+			echo kubectl delete $1 -n $ns $obj
+			kubectl delete $1 -n $ns $obj
+		done
+	fi
+}
+
+_kyaml() {
+	local entry obj ns
+	if [ -n "$2" ]; then
+		kubectl get $1 $obj -o yaml | kubectl neat -f -
+	else
+		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+		ns=$(echo $entry | awk -F '/' '{ print $1 }')
+		obj=$(echo $entry | awk -F '/' '{ print $2 }')
+		# echo "kubectl get $1 -n $ns $obj -o yaml | kubectl neat -f -"
+		kubectl get $1 -n $ns $obj -o yaml | kubectl neat -f -
+	fi
+}
+
+_kexec() {
+	local entry obj ns
+  entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
+	ns=$(echo $entry | awk -F '/' '{ print $1 }')
+	obj=$(echo $entry | awk -F '/' '{ print $2 }')
+	echo kubectl exec -n $ns -it $1/$obj $2
+	kubectl exec -n $ns -it $1/$obj $2
+}
+
+kcj() {
+	local entry obj ns
+	if [ -z "$1" ]; then
+		echo "No job name specified"
+		return
+	fi
+	if [ -n "$2" ]; then
+		kubectl create job --from=cronjob/$2 $1
+	else
+		entry=$(kubectl get cronjob -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux -m)
+		for e in $entry; do
+			ns=$(echo $e | awk -F '/' '{ print $1 }')
+			obj=$(echo $e | awk -F '/' '{ print $2 }')
+			echo kubectl create job -n $ns --from=cronjob/$obj $1
+			kubectl create job -n $ns --from=cronjob/$obj $1
+		done
+	fi
+}
