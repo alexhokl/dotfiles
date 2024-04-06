@@ -608,3 +608,5 @@ vbuild() {
 vgd() {
 	git diff --name-only | xargs $EDITOR
 }
+
+source ${HOME}/.functions_fzf
