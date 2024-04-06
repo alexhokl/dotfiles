@@ -613,3 +613,4 @@ source ${HOME}/.functions_fzf
 source ${HOME}/.functions_azure
 source ${HOME}/.functions_cloudflare
 source ${HOME}/.functions_kubectl
+source ${HOME}/.functions_git
