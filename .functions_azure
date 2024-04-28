@@ -539,7 +539,7 @@ az_aks_api_ip_list() {
 	fi
 
 	local rg aks aks_choice
-	aks_choice=$(az aks list | jq -r '.[] | .resourceGroup + "," + .name' | sort | gum choose)
+	aks_choice=$(az aks list | jq -r '.[] | .resourceGroup + "," + .name' | sort | gum filter --limit=1)
 	rg=$(echo $aks_choice | awk -F ',' '{ print $1 }')
 	aks=$(echo $aks_choice | awk -F ',' '{ print $2 }')
 
@@ -561,7 +561,7 @@ az_aks_api_ip_update() {
 	fi
 
 	local rg aks aks_choice whitelist_string new_list
-	aks_choice=$(az aks list | jq -r '.[] | .resourceGroup + "," + .name' | sort | gum choose)
+	aks_choice=$(az aks list | jq -r '.[] | .resourceGroup + "," + .name' | sort | gum filter --limit=1)
 	rg=$(echo $aks_choice | awk -F ',' '{ print $1 }')
 	aks=$(echo $aks_choice | awk -F ',' '{ print $2 }')
 
