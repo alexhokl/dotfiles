@@ -1,0 +1,42 @@
+#!/bin/bash
+
+docker_image_rm_all() {
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local selected_image
+
+	selected_image=$(docker image ls --format json | jq -r '.Repository' | grep -v "<none>" | sort | uniq | gum filter --limit=1)
+	if [ -z "$selected_image" ]; then
+		echo "No image selected"
+		return
+	fi
+
+	docker image ls --format json | jq -r "select(.Repository==\"$selected_image\") | .Tag" | xargs -I {} docker image rm $selected_image:{}
+}
+
+docker_image_rm() {
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local selected_image selected_tag
+
+	selected_image=$(docker image ls --format json | jq -r '.Repository' | grep -v "<none>" | sort | uniq | gum filter --limit=1)
+	if [ -z "$selected_image" ]; then
+		echo "No image selected"
+		return
+	fi
+
+	selected_tag=$(docker image ls --format json | jq -r "select(.Repository==\"$selected_image\") | .Tag" | gum filter --limit=1)
+	if [ -z "$selected_tag" ]; then
+		echo "No tag selected"
+		return
+	fi
+
+	docker image rm $selected_image:$selected_tag
+}
+
