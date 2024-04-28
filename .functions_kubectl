@@ -92,6 +92,10 @@ kesa() {
 	_ke sa $1
 }
 
+keotel() {
+	_ke opentelemetrycollectors.opentelemetry.io $1
+}
+
 kgd() {
 	_kyaml deploy $1
 }
@@ -274,4 +278,12 @@ kcj() {
 			kubectl create job -n $ns --from=cronjob/$obj $1
 		done
 	fi
+}
+
+kgp_containers() {
+	kgp | yq '.spec.containers[] | .name'
+}
+
+kgp_images() {
+	kgp | yq '.spec.containers[] | .image'
 }
