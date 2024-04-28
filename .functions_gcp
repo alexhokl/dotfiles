@@ -2920,3 +2920,30 @@ gcp_pubsub_subscription_pull() {
 
 	gcloud pubsub subscriptions pull $subscription_name --project $project_id --format json
 }
+
+gcp_resource_all() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ "${project_id}" == "" ]; then
+		echo No project selected
+		return
+	fi
+
+	gcloud asset search-all-resources --scope=projects/${project_id} --format=json | jq -r '.[] | .name'
+}
