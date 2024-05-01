@@ -164,3 +164,7 @@ linux-*.deb
 
 .yarnrc.yml
 .yarn/
+
+temp.md
+temp.sql
+cookies.txt
