@@ -218,3 +218,7 @@ complete -F __start_kubectl kub
 [ -f ~/.local/share/blesh/ble.sh ] && source source ~/.local/share/blesh/ble.sh
 
 eval "$(atuin init bash --disable-up-arrow)"
+
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
