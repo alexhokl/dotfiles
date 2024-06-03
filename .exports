@@ -56,3 +56,6 @@ export FZF_DEFAULT_COMMAND="rg --ignore --files"
 
 export USE_GKE_GCLOUD_AUTH_PLUGIN=True
 export D2_LAYOUT=elk
+
+export OCO_AI_PROVIDER=ollama
+export OCO_MODEL=codegemma
