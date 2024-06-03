@@ -22,6 +22,9 @@
 ## for example: "+9", "-05", "+03:30", "-01:23:45", etc.
 # timezone = "local"
 
+# [sync]
+# records = true
+
 ## enable or disable automatic sync
 # auto_sync = true
 

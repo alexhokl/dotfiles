@@ -214,4 +214,7 @@ fi
 
 complete -F __start_kubectl kub
 
+# source ble.sh
+[ -f ~/.local/share/blesh/ble.sh ] && source source ~/.local/share/blesh/ble.sh
+
 eval "$(atuin init bash --disable-up-arrow)"
