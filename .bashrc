@@ -187,7 +187,11 @@ if [[ -n "$(which lsb_release)" ]]; then
 		file=$GOPATH/installation/archlinux/functions
 	fi
 else
-	file=$GOPATH/installation/archlinux/functions
+	if [[ "$(uname)" == "Darwin" ]]; then
+		file=$GOPATH/installation/mac/functions
+	else
+		file=$GOPATH/installation/archlinux/functions
+	fi
 fi
 
 if [[ -r "$file" ]] && [[ -f "$file" ]]; then
