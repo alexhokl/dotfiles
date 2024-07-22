@@ -2630,6 +2630,14 @@ gcp_secrets_create_empty() {
 		echo "gcloud has not been installed"
 		return
 	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
 
 	local secret_name project_id labels
 
@@ -2667,6 +2675,14 @@ gcp_secrets_update() {
 		echo "gcloud has not been installed"
 		return
 	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
 
 	local secret_name project_id labels dir original_file updated_file
 	dir=$(mktemp -d)
@@ -2695,9 +2711,64 @@ gcp_secrets_update() {
 	gcloud secrets versions add $secret_name --project $project_id --data-file $dir/$secret_name.updated.json
 }
 
+gcp_secrets_diff() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local secret_name project_id base_version new_version temp_dir
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	if [ -z "$secret_name" ]; then
+		echo No secret selected
+		return
+	fi
+
+	base_version=$(gcloud secrets versions list $secret_name --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $6}' | gum filter --limit=1)
+	if [ -z "$base_version" ]; then
+		echo No base version selected
+		return
+	fi
+
+	new_version=$(gcloud secrets versions list $secret_name --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $6}' | gum filter --limit=1)
+	if [ -z "$new_version" ]; then
+		echo No new version selected
+		return
+	fi
+
+	temp_dir=$(mktemp -d)
+
+	gcloud secrets versions access $base_version --secret $secret_name --project $project_id > $temp_dir/$secret_name.$base_version.json
+	gcloud secrets versions access $new_version --secret $secret_name --project $project_id > $temp_dir/$secret_name.$new_version.json
+	delta $temp_dir/$secret_name.$base_version.json $temp_dir/$secret_name.$new_version.json
+}
+
 gcp_secrets_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
 		return
 	fi
 
@@ -2715,6 +2786,14 @@ gcp_secrets_list() {
 gcp_secrets_dump() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
 		return
 	fi
 
