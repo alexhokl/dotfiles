@@ -581,6 +581,14 @@ function vgrep() {
 	vim -c "/${1}" $(git grep -l "${@}")
 }
 
+function vgrepi() {
+	if [ -z "${1}" ]; then
+		echo "ERROR: no search term is specified"
+		return 1
+	fi
+	git grep -il "${@}" | xargs $EDITOR -c "/${1}"
+}
+
 function vfd() {
 	fd $@ | xargs $EDITOR
 }
