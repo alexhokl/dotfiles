@@ -2,6 +2,11 @@
 
 # gb - checkout git branch
 gb() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local branches branch
   branches=$(git --no-pager branch -vv) &&
   branch=$(echo "$branches" | fzf-tmux +m) &&
@@ -9,6 +14,11 @@ gb() {
 }
 
 gbd() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local branches branch
   branches=$(git --no-pager branch -vv) &&
   branch=$(echo "$branches" | fzf-tmux +m) &&
@@ -17,6 +27,11 @@ gbd() {
 
 # gco - checkout git branch (including remote branches)
 gco() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
 	if [ "$1" == "-" ]; then
 		git checkout -
 		return
@@ -35,6 +50,11 @@ gco() {
 
 # gmb - merge git branch (including remote branches)
 gmb() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local branches branch
   branches=$(git branch --all | grep -v HEAD) &&
   branch=$(echo "$branches" |
@@ -45,6 +65,11 @@ gmb() {
 
 # gfc - show git commit
 gfc() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local commits commit
   commits=$(git log --pretty=oneline --abbrev-commit --reverse) &&
   commit=$(echo "$commits" | fzf-tmux --tac +s +m -e) &&
@@ -52,6 +77,11 @@ gfc() {
 }
 
 gd() (
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local branches branch target
   branches=$(git branch --all | grep -v HEAD) &&
   branch=$(echo "$branches" |
@@ -63,11 +93,21 @@ gd() (
 )
 
 gl() (
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
   [[ -n "$files" ]] && echo ${files} && git lg "${files[@]}"
 )
 
 gls() (
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+
   local commits commit
   IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
   commits=$(git log --pretty=oneline --abbrev-commit --reverse "$files") &&
@@ -76,6 +116,10 @@ gls() (
 )
 
 gfm() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
 	if [ -z "$1" ]; then
 		echo "No commit message specified"
 		return
@@ -91,6 +135,10 @@ gfm() {
 }
 
 gfmp() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
 	if [ -z "$1" ]; then
 		echo "No commit message specified"
 		return
@@ -112,3 +160,20 @@ ga() {
 	git ls-files --modified --others --exclude-standard | fzf-tmux -m | xargs git add
 }
 
+gcm() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+	if [ -z "$(which mods)" ]; then
+		echo "mods has not been installed"
+		return
+	fi
+
+	# write git diff to a temp file
+	local diff_file
+	diff_file=$(mktemp)
+	git diff --cached --diff-algorithm=minimal > $diff_file
+	# prompt LLM using mods against the diff file
+	mods -f "Generate a concise git commit message written in past tense for the following code diff. Your entire response will be passed directly into git commit." < $diff_file
+}
