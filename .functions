@@ -617,6 +617,11 @@ vgd() {
 	git diff --name-only | xargs $EDITOR
 }
 
+# open unmerged files in editor
+vgum() {
+	git status --short | grep UU | awk '{print $2}' | xargs $EDITOR
+}
+
 source ${HOME}/.functions_fzf
 source ${HOME}/.functions_azure
 source ${HOME}/.functions_cloudflare
