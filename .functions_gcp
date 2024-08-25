@@ -133,7 +133,47 @@ function gcp_vm_stop() {
 	gcloud compute instances stop --project $project_id $vm_name
 }
 
-function gcp_vm_update_ssh_keys() {
+function gcp_project_ssh_key_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	gcloud compute os-login ssh-keys list --project $project_id
+}
+
+function gcp_project_compute_ssh_key_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	gcloud compute project-info describe --project $project_id --format json | jq -r '.commonInstanceMetadata.items[] | select(.key=="ssh-keys") | .value'
+}
+
+function gcp_project_compute_ssh_key_update() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
 		return
