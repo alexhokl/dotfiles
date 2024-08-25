@@ -93,8 +93,8 @@ function gcp_vm_start() {
 		return
 	fi
 
-	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + "," + .status' | gum table -c VM,Status -w 30,10)
-	vm_name=$(echo $selection | awk -F, '{print $1}')
+	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | select(.status!="RUNNING") | .name + " (" + .status + ")"' | gum filter --limit=1)
+	vm_name=$(echo $selection | awk '{print $1}')
 	if [ -z "$vm_name" ]; then
 		echo No VM selected
 		return
@@ -124,8 +124,8 @@ function gcp_vm_stop() {
 		return
 	fi
 
-	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + "," + .status' | gum table -c VM,Status -w 30,10)
-	vm_name=$(echo $selection | awk -F, '{print $1}')
+	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | select(.status!="TERMINATED") | .name + " (" + .status + ")"' | gum filter --limit=1)
+	vm_name=$(echo $selection | awk '{print $1}')
 	if [ -z "$vm_name" ]; then
 		echo No VM selected
 		return
@@ -190,8 +190,8 @@ function gcp_vm_reset() {
 		return
 	fi
 
-	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + "," + .status' | gum table -c VM,Status -w 30,10)
-	vm_name=$(echo $selection | awk -F, '{print $1}')
+	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + " (" + .status + ")"' | gum filter --limit=1)
+	vm_name=$(echo $selection | awk '{print $1}')
 	if [ -z "$vm_name" ]; then
 		echo No VM selected
 		return
@@ -221,8 +221,8 @@ function gcp_vm_describe() {
 		return
 	fi
 
-	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + "," + .status' | gum table -c VM,Status -w 30,10)
-	vm_name=$(echo $selection | awk -F, '{print $1}')
+	selection=$(gcloud compute instances list --project $project_id --format json | jq -r '.[] | .name + " (" + .status + ")"' | gum filter --limit=1)
+	vm_name=$(echo $selection | awk '{print $1}')
 	if [ -z "$vm_name" ]; then
 		echo No VM selected
 		return
@@ -335,7 +335,7 @@ gcp_bucket_rm() {
 		return
 	fi
 
-	bucket=$(gsutil ls -p $project_id | gum table -c Buckets -w 50)
+	bucket=$(gsutil ls -p $project_id | gum filter --limit=1)
 	if [ -z "$bucket" ]; then
 		echo No bucket selected
 		return
