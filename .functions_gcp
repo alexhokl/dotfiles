@@ -16,7 +16,7 @@ function gcp_accounts() {
 
 	local selection account
 
-	selection=$(gcloud auth list --format json | jq -r '.[] | .account + "," + .status' | gum table -c Account,Status -w 30,10)
+	selection=$(gcloud auth list --format json | jq -r '.[] | .account + "," + .status' | gum filter --limit=1)
 	account=$(echo $selection | awk -F, '{print $1}')
 	if [ -z "$account" ]; then
 		echo No account selected
@@ -43,7 +43,7 @@ function gcp_projects() {
 
 	local selection project_id
 
-	selection=$(gcloud projects list --format json | jq -r '.[] | .projectId + "," + .name' | gum table -c ID,Name -w 30,30)
+	selection=$(gcloud projects list --format json | jq -r '.[] | .projectId + "," + .name' | gum filter --limit=1)
 	project_id=$(echo $selection | awk -F, '{print $1}')
 	if [ -z "$project_id" ]; then
 		echo No project selected
@@ -906,7 +906,7 @@ gcp_sql_describe() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(gum which jq)" ]; then
+	if [ -z "$(which jq)" ]; then
 		echo "jq has not been installed"
 		return
 	fi
@@ -1372,6 +1372,68 @@ gcp_sql_user_set_password() {
 	fi
 
 	gcloud sql users set-password $selected_user --instance $server_name --project $project_id --password=$password
+}
+
+gcp_sql_deletion_protection_enable() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local server_name project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$server_name" ]; then
+		echo No SQL server selected
+		return
+	fi
+
+	gcloud sql instances patch $server_name --project $project_id --deletion-protection
+}
+
+gcp_sql_deletion_protection_disable() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local server_name project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$server_name" ]; then
+		echo No SQL server selected
+		return
+	fi
+
+	gcloud sql instances patch $server_name --project $project_id --no-deletion-protection
 }
 
 gcp_kub_list() {
