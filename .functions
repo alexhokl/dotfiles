@@ -578,7 +578,7 @@ function vgrep() {
 		echo "ERROR: no search term is specified"
 		return 1
 	fi
-	vim -c "/${1}" $(git grep -l "${@}")
+	git grep -l "${@}" | awk '{print "\"" $0 "\""}' | xargs nvim -c "/${1}"
 }
 
 function vgrepi() {
@@ -586,7 +586,7 @@ function vgrepi() {
 		echo "ERROR: no search term is specified"
 		return 1
 	fi
-	git grep -il "${@}" | xargs $EDITOR -c "/${1}"
+	git grep -l "${@}" | awk '{print "\"" $0 "\""}' | xargs nvim -c "/${1}"
 }
 
 function vfd() {
@@ -614,12 +614,12 @@ vbuild() {
 }
 
 vgd() {
-	git diff --name-only | xargs $EDITOR
+	git diff --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
 }
 
 # open unmerged files in editor
 vgum() {
-	git status --short | grep UU | awk '{print $2}' | xargs $EDITOR
+	git status --short | grep UU | awk '{print "\"" $2 "\""}' | xargs $EDITOR
 }
 
 source ${HOME}/.functions_fzf
