@@ -586,14 +586,10 @@ function vgrepi() {
 		echo "ERROR: no search term is specified"
 		return 1
 	fi
-	git grep -l "${@}" | awk '{print "\"" $0 "\""}' | xargs nvim -c "/${1}"
+	git grep -il "${@}" | awk '{print "\"" $0 "\""}' | xargs nvim -c "/${1}"
 }
 
-function vfd() {
-	fd $@ | xargs $EDITOR
-}
-
-top_processes() {
+function top_processes() {
   echo top memory usages
   ps axch -o cmd,%mem --sort=-%mem | head
 	echo
@@ -601,7 +597,7 @@ top_processes() {
   ps axch -o cmd,%cpu --sort=-%cpu | head
 }
 
-cd_home() {
+function cd_home() {
   TEMP_PWD=`pwd`
   while ! [ -d .git ]; do
   cd ..
@@ -609,16 +605,28 @@ cd_home() {
   OLDPWD=$TEMP_PWD
 }
 
-vbuild() {
+function vfd() {
+	fd -t f $@ | xargs $EDITOR
+}
+
+function vofd() {
+	fd -t f $@ | xargs nvim -O
+}
+
+function kdiff3fd() {
+	fd -t f $@ | xargs kdiff3
+}
+
+function vbuild() {
 	task build | grep ": error" | awk '{print $1 }' | sd $PWD/ "" | awk -F '(' '{print $1 }' | sort | uniq | xargs $EDITOR
 }
 
-vgd() {
+function vgd() {
 	git diff --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
 }
 
 # open unmerged files in editor
-vgum() {
+function vgum() {
 	git status --short | grep UU | awk '{print "\"" $2 "\""}' | xargs $EDITOR
 }
 
