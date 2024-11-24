@@ -226,3 +226,6 @@ eval "$(atuin init bash --disable-up-arrow)"
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+
+# initialize rbenv
+eval "$(rbenv init - --no-rehash bash)"
