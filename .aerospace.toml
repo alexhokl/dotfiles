@@ -12,7 +12,7 @@ after-login-command = []
 after-startup-command = []
 
 # Start AeroSpace at login
-start-at-login = false
+start-at-login = true
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
@@ -58,6 +58,7 @@ preset = 'qwerty'
 [workspace-to-monitor-force-assignment]
 1 = 'LG UltraFine'
 2 = 'LG HDR 4K'
+3 = 'Built-in Retina Display'
 
 
 [gaps]
@@ -145,6 +146,8 @@ alt-shift-9 = 'move-node-to-workspace 9'
 alt-tab = 'workspace-back-and-forth'
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+alt-shift-f = 'fullscreen'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
