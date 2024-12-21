@@ -59,7 +59,10 @@ preset = 'qwerty'
 1 = 'LG UltraFine'
 2 = 'LG HDR 4K'
 3 = 'Built-in Retina Display'
-
+6 = 'LG HDR 4K'
+7 = 'LG HDR 4K'
+8 = 'LG HDR 4K'
+9 = 'LG HDR 4K'
 
 [gaps]
 inner.horizontal = 0
