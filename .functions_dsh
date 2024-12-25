@@ -1,0 +1,11 @@
+#! /bin/bash
+
+## https://github.com/yznts/dsh
+
+function dsh_select_database() {
+	local selected_database_name selected_connection_string
+
+	selected_database_name=$(cat ~/.local/share/db_ui/connections.json | jq -r '.[] | .name' | gum  filter --limit=1)
+	selected_connection_string=$(cat ~/.local/share/db_ui/connections.json | jq -r ".[] | select(.name==\"$selected_database_name\") | .url")
+	export DSN=$selected_connection_string
+}
