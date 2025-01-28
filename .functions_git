@@ -153,7 +153,7 @@ gfmp() {
 	commit_list_file=$(mktemp)
  	git log --pretty=format:'%C(yellow)%h	%Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --reverse --date=short --decorate --no-merges -E --grep="(${1})" "${trimmed_branch}" > $commit_list_file
 	$EDITOR $commit_list_file
-	cat $commit_list_file | awk '{print $1}' | xargs git cherry--pick
+	cat $commit_list_file | awk '{print $1}' | xargs git cherry-pick
 }
 
 ga() {
