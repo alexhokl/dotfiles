@@ -105,3 +105,6 @@ test -r "${HOME}/.opam/opam-init/init.sh" && . "${HOME}/.opam/opam-init/init.sh"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH=$BUN_INSTALL/bin:$PATH
+
+# npm
+export PATH=$HOME/.npm-global/bin:$PATH
