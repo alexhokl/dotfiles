@@ -2741,6 +2741,16 @@ gcp_secrets_create_empty() {
 		return
 	fi
 
+	if [ -z "${1}" ]; then
+		echo No secret name provided
+		return
+	fi
+
+	if [ -z "${2}" ]; then
+		echo No labels provided
+		return
+	fi
+
 	local secret_name project_id labels
 
 	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
@@ -2749,25 +2759,8 @@ gcp_secrets_create_empty() {
 		return
 	fi
 
-	if [ -z "${1}" ]; then
-		secret_name=$(gum input --header="Secret Name")
-		if [ -z "$secret_name" ]; then
-			echo No secret name provided
-			return
-		fi
-	else
-		secret_name="${1}"
-	fi
-
-	if [ -z "${2}" ]; then
-		labels=$(gum input --header="Labels (a=b,c=d)")
-		if [ -z "$labels" ]; then
-			echo No labels provided
-			return
-		fi
-	else
-		labels="${2}"
-	fi
+	secret_name="${1}"
+	labels="${2}"
 
 	gcloud secrets create $secret_name --data-file /dev/null --project $project_id --labels $labels
 }
@@ -3127,4 +3120,46 @@ gcp_resource_all() {
 	fi
 
 	gcloud asset search-all-resources --scope=projects/${project_id} --format=json | jq -r '.[] | .name'
+}
+
+gcp_container_registry_delete_images() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id repository_name image_name tag tag_names_file
+	tag_names_file=$(mktemp)
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ "${project_id}" == "" ]; then
+		echo No project selected
+		return
+	fi
+
+	repository_name=$(gcloud container images list-gcr-usage --project common-gsc-asdf-1 --format json | jq -r '.[] | .repository' | gum filter --limit=1)
+	if [ "${repository_name}" == "" ]; then
+		echo No repository selected
+		return
+	fi
+
+	image_name=$(gcloud container images list --repository $repository_name --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ "${image_name}" == "" ]; then
+		echo No image selected
+		return
+	fi
+
+	gcloud container images list-tags --project $project_id --format json $image_name | jq -r '.[] | .tags[]' | gum filter --no-limit > $tag_names_file
+
+	cat $tag_names_file | xargs -I {} gcloud container images delete --force-delete-tags --quiet $image_name:{}
 }
