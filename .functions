@@ -644,3 +644,4 @@ source ${HOME}/.functions_gh
 source ${HOME}/.functions_tmux
 source ${HOME}/.functions_docker
 source ${HOME}/.functions_dsh
+source ${HOME}/.functions_stable_diffusion

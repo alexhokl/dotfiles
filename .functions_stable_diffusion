@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function sdcpp_prompt() {
+	if [ -z "$(which sdcpp)" ]; then
+		echo "sd (stable-diffusion.cpp) has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local model prompt output_filename
+
+	model=$(fd --absolute-path . $HOME/.local/share/stable-diffusion/ | gum filter --limit=1)
+	if [ -z "$model" ]; then
+		echo "No model selected"
+		return
+	fi
+
+	prompt=$(gum input --header "Enter the prompt")
+	if [ -z "$prompt" ]; then
+		echo No prompt specified
+		return
+	fi
+
+	output_filename=$(gum input --header "Enter the output filename")
+	if [ -z "$output_filename" ]; then
+		echo No output filename specified
+		return
+	fi
+
+	sdcpp -m $model -o $output_filename -p "${prompt}"
+}
+
