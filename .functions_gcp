@@ -1701,6 +1701,51 @@ gcp_kub_authorized_ip_addresses_delete() {
 		Content-Type:application/json
 }
 
+function gcp_kub_node_pools_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local project_id cluster_name
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo "No project selected"
+		return
+	fi
+
+	cluster_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$cluster_name" ]; then
+		echo "No cluster selected"
+		return
+	fi
+
+	gcloud container node-pools list --project $project_id --cluster $cluster_name
+}
+
+function gcp_kub_version_regular_default() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+
+	gcloud container get-server-config --flatten="channels" --filter="channels.channel=REGULAR" --format json | jq -r '.[] | .channels.defaultVersion'
+}
+
+function gcp_kub_version_regular_valid() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+
+	gcloud container get-server-config --flatten="channels" --filter="channels.channel=REGULAR" --format json | jq -r '.[] | .channels.validVersions[]'
+}
+
 function gcp_all_ip_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
