@@ -2449,6 +2449,38 @@ gcp_dashboard_list() {
 		| jq -r '.[] | .etag + " , " + .displayName'
 }
 
+gcp_dashboard_dump() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local project_id name id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	name=$(gcloud monitoring dashboards list --project $project_id --format json | jq -r '.[] | .displayName + "," + .name' | gum filter --limit=1)
+	if [ -z "$name" ]; then
+		echo No dashboard selected
+		return
+	fi
+
+	id=$(echo $name | awk -F ',' '{print $2}')
+	gcloud monitoring dashboards describe --project $project_id --format json $id | jq '{ etag: .etag, dashboardFilters: .dashboardFilters, displayName: .displayName, mosaicLayout: .mosaicLayout }'
+}
+
 gcp_dashboard_edit() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
@@ -2480,7 +2512,7 @@ gcp_dashboard_edit() {
 	original_file=$(mktemp).json
 	updated_file=$(mktemp).json
 	id=$(echo $name | awk -F ',' '{print $2}')
-	gcloud monitoring dashboards describe --project $project_id --format json $id > $original_file
+	gcloud monitoring dashboards describe --project $project_id --format json $id | jq '{ etag: .etag, dashboardFilters: .dashboardFilters, displayName: .displayName, mosaicLayout: .mosaicLayout }' > $original_file
 	cp -f $original_file $updated_file
 	$EDITOR $updated_file
 	if [ "$(diff $original_file $updated_file)" != "" ]; then
