@@ -1436,6 +1436,74 @@ gcp_sql_deletion_protection_disable() {
 	gcloud sql instances patch $server_name --project $project_id --no-deletion-protection
 }
 
+gcp_sql_operation_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local server_name project_id
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$server_name" ]; then
+		echo No SQL server selected
+		return
+	fi
+
+	gcloud sql operations list --project $project_id --instance $server_name
+}
+
+gcp_sql_operation_wait() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local server_name project_id operation_name
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$server_name" ]; then
+		echo No SQL server selected
+		return
+	fi
+
+	operation_name=$(gcloud sql operations list --project $project_id --instance $server_name --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	if [ -z "$operation_name" ]; then
+		echo No operation selected
+		return
+	fi
+
+	gcloud sql operations wait $operation_name --project $project_id --instance $server_name
+}
+
 gcp_kub_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
@@ -2856,7 +2924,7 @@ gcp_secrets_update() {
 		return
 	fi
 
-	local secret_name project_id labels dir original_file updated_file
+	local secret_name project_id dir original_file updated_file
 	dir=$(mktemp -d)
 
 	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
@@ -2881,6 +2949,44 @@ gcp_secrets_update() {
 	fi
 
 	gcloud secrets versions add $secret_name --project $project_id --data-file $dir/$secret_name.updated.json
+}
+
+gcp_secrets_update_single_line() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+
+	local secret_name project_id original_password new_password
+
+	project_id=$(gcloud projects list --format json | jq -r '.[] | .projectId' | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	if [ -z "$secret_name" ]; then
+		echo No secret selected
+		return
+	fi
+
+	original_password=$(gcloud secrets versions access latest --secret $secret_name --project $project_id)
+	new_password=$(gum input --header="Enter new password" --value="$original_password")
+	if [ "$original_password" == "$new_password" ]; then
+		echo No changes made
+		return
+	fi
+
+	echo "$new_password" | gcloud secrets versions access latest --secret $secret_name --project $project_id --data-file=-
 }
 
 gcp_secrets_diff() {
