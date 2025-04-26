@@ -48,6 +48,10 @@ kdd() {
 	_kd deploy $1
 }
 
+kdrs() {
+	_kd rs $1
+}
+
 kdcron() {
 	_kd cronjob $1
 }
@@ -172,6 +176,10 @@ kgcron() {
 
 krp() {
 	_kr pod $1
+}
+
+krrs() {
+	_kr rs $1
 }
 
 krj() {
