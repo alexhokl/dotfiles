@@ -645,3 +645,4 @@ source ${HOME}/.functions_tmux
 source ${HOME}/.functions_docker
 source ${HOME}/.functions_dsh
 source ${HOME}/.functions_stable_diffusion
+source ${HOME}/.functions_scrape

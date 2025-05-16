@@ -1,0 +1,116 @@
+#!/bin/bash
+
+function scrape_guardian() {
+	if [ -z "$(which scrape)" ]; then
+		echo "scrape has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+  if [ -z "$(which glow)" ]; then
+    echo "glow has not been installed"
+    return
+  fi
+
+  local section_urls selected_url selected_markdown_link article_url
+
+  ## array of urls
+  section_urls=(
+    "https://www.theguardian.com/us-news"
+    "https://www.theguardian.com/uk-news"
+    "https://www.theguardian.com/international"
+    "https://www.theguardian.com/world"
+    "https://www.theguardian.com/business"
+    "https://www.theguardian.com/uk/technology"
+    "https://www.theguardian.com/science"
+    "https://www.theguardian.com/football"
+    "https://www.theguardian.com/world/asia"
+  )
+
+  selected_url=$(printf "%s\n" "${section_urls[@]}" | gum filter --limit=1)
+  if [ -z "$selected_url" ]; then
+    echo "No section URL selected."
+    return
+  fi
+
+  selected_markdown_link=$(scrape links --source guardian --url "$selected_url" | gum filter --limit=1)
+  if [ -z "$selected_markdown_link" ]; then
+    echo "No article selected."
+    return
+  fi
+
+  article_url=$(echo "$selected_markdown_link" | awk -F'(' '{print $2}' | awk -F')' '{print $1}')
+  scrape article --source guardian --url "$article_url" | glow
+}
+
+function scrape_guardian_to_epub() {
+  if [ -z "$(which scrape)" ]; then
+    echo "scrape has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which ebook-convert)" ]; then
+    echo "ebook-convert has not been installed"
+    return
+  fi
+
+  local section_urls selected_url selected_markdown_link article_url markdown_file_directory
+
+  ## array of urls
+  section_urls=(
+    "https://www.theguardian.com/us-news"
+    "https://www.theguardian.com/uk-news"
+    "https://www.theguardian.com/international"
+    "https://www.theguardian.com/world"
+    "https://www.theguardian.com/business"
+    "https://www.theguardian.com/uk/technology"
+    "https://www.theguardian.com/science"
+    "https://www.theguardian.com/football"
+    "https://www.theguardian.com/world/asia"
+  )
+
+  selected_url=$(printf "%s\n" "${section_urls[@]}" | gum filter --limit=1)
+  if [ -z "$selected_url" ]; then
+    echo "No section URL selected."
+    return
+  fi
+
+  selected_markdown_link=$(scrape links --source guardian --url "$selected_url" | gum filter --limit=1)
+  if [ -z "$selected_markdown_link" ]; then
+    echo "No article selected."
+    return
+  fi
+
+  article_url=$(echo "$selected_markdown_link" | awk -F'(' '{print $2}' | awk -F')' '{print $1}')
+  markdown_file_directory=$(mktemp -d)
+  scrape article --source guardian --url "$article_url" > "$markdown_file_directory/temp.md"
+  ebook-convert "$markdown_file_directory/temp.md" "${article_url##*/}.epub" --title "${article_url##*/}" --authors "The Guardian" --language "en" --no-default-epub-cover
+}
+
+function scrape_microsoft_learn_to_epub() {
+  if [ -z "$(which scrape)" ]; then
+    echo "scrape has not been installed"
+    return
+  fi
+  if [ -z "$(which ebook-convert)" ]; then
+    echo "ebook-convert has not been installed"
+    return
+  fi
+
+  if [ -z "$1" ]; then
+    echo "Missing parameters. Usage: scrape_microsoft_learn <url>"
+    return
+  fi
+
+  local markdown_file_directory
+
+  markdown_file_directory=$(mktemp -d)
+  scrape article --source microsoft --url "$1" > "$markdown_file_directory/temp.md"
+  ebook-convert "$markdown_file_directory/temp.md" "${1##*/}.epub" --title "${1##*/}" --authors "microsoft Learn" --language "en" --no-default-epub-cover
+
+}
