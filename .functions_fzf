@@ -8,6 +8,11 @@ function fe() (
   [[ -n "$files" ]] && $EDITOR "${files[@]}"
 )
 
+function fev() {
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && nvim -O "${files[@]}"
+}
+
 # Modified version where you can press
 #   - CTRL-O to open with `open` command,
 #   - CTRL-E or Enter key to open with the $EDITOR
