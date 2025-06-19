@@ -2559,10 +2559,6 @@ gcp_dashboard_dump() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local project_id name id
 
@@ -2572,14 +2568,14 @@ gcp_dashboard_dump() {
 		return
 	fi
 
-	name=$(gcloud monitoring dashboards list --project $project_id --format json | jq -r '.[] | .displayName + "," + .name' | gum filter --limit=1)
+  name=$(gcloud monitoring dashboards list --project $project_id --format "csv(displayName,name)" | gum filter --limit=1)
 	if [ -z "$name" ]; then
 		echo No dashboard selected
 		return
 	fi
 
 	id=$(echo $name | awk -F ',' '{print $2}')
-	gcloud monitoring dashboards describe --project $project_id --format json $id | jq '{ etag: .etag, dashboardFilters: .dashboardFilters, displayName: .displayName, mosaicLayout: .mosaicLayout }'
+  gcloud monitoring dashboards describe --project $project_id --format "json(etag,dashboardFilters,displayName,mosaicLayout)" $id
 }
 
 gcp_dashboard_edit() {
