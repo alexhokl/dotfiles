@@ -1535,6 +1535,37 @@ gcp_sql_operation_wait() {
 	gcloud sql operations wait $operation_name --project $project_id --instance $server_name
 }
 
+gcp_sql_latest_recovery_time() {
+  if [ -z "$(which gcloud)" ]; then
+    echo "gcloud has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which jq)" ]; then
+    echo "jq has not been installed"
+    return
+  fi
+
+  local server_name project_id
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+  if [ -z "$project_id" ]; then
+    echo No project selected
+    return
+  fi
+
+  server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+  if [ -z "$server_name" ]; then
+    echo No SQL server selected
+    return
+  fi
+
+  gcloud sql instances get-latest-recovery-time --project $project_id $server_name
+}
+
 gcp_kub_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
