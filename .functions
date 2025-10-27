@@ -621,6 +621,10 @@ function vbuild() {
 	task build | grep ": error" | awk '{print $1 }' | sd $PWD/ "" | awk -F '(' '{print $1 }' | sort | uniq | xargs $EDITOR
 }
 
+function vformat() {
+  task format-test 2> >(grep -E ":\ (error|warning)") | awk '{print $1 }' | sd $PWD/ "" | awk -F '(' '{print $1 }' | sort | uniq | xargs $EDITOR
+}
+
 function vgd() {
 	git diff --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
 }
