@@ -1,0 +1,51 @@
+#!/bin/bash
+
+function expense_create() {
+  if [ -z "$(which go-ali-expense-tracker)" ]; then
+    echo "go-ali-expense-tracker is not installed. Please install it first."
+    return 1
+  fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return 1
+	fi
+
+  local selected_expense_types selected_payment_type description amount entry_date
+
+  entry_date=$(gum input --header="Entry date(YYYY-MM-DD)" --value="$(date -I)")
+  if [ -z "$entry_date" ]; then
+    echo "Entry date is required."
+    return 1
+  fi
+
+  description=$(gum input --header="Description")
+  if [ -z "$description" ]; then
+    echo "Description is required."
+    return 1
+  fi
+
+  amount=$(gum input --header="Amount")
+  if [ -z "$amount" ]; then
+    echo "Amount is required."
+    return 1
+  fi
+
+  selected_expense_types=$(go-ali-expense-tracker list expense | gum choose --header="Select expense types (use space to select multiple)" --no-limit)
+  if [ -z "$selected_expense_types" ]; then
+    echo "At least one expense type must be selected."
+    return 1
+  fi
+
+  selected_payment_type=$(go-ali-expense-tracker list payment| gum choose --header="Select payment type" --limit 1)
+  if [ -z "$selected_payment_type" ]; then
+    echo "A payment type must be selected."
+    return 1
+  fi
+
+  go-ali-expense-tracker create entry \
+    --date "$entry_date" \
+    --description "\"$description\"" \
+    --amount "$amount" \
+    $(for expense in $selected_expense_types; do echo --expenses "\"$expense\" "; done) \
+    --payment "$selected_payment_type"
+}
