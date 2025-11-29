@@ -7,6 +7,7 @@ export GOBIN="${GOPATH}/bin"
 # update path
 export PATH=/usr/local/bin:${PATH}:/sbin:/usr/local/sbin
 export PATH=/opt/homebrew/opt/curl/bin:$PATH
+export PATH=/opt/homebrew/opt/sqlite/bin:$PATH
 export PATH=${PATH}:$HOME/.rbenv/bin
 export PATH=${PATH}:$HOME/.rbenv/versions/3.1.1/bin
 export PATH=${PATH}:$HOME/.local/bin
