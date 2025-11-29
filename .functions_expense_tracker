@@ -30,13 +30,13 @@ function expense_create() {
     return 1
   fi
 
-  selected_expense_types=$(go-ali-expense-tracker list expense | gum choose --header="Select expense types (use space to select multiple)" --no-limit)
+  selected_expense_types=$(go-ali-expense-tracker list expense | gum filter --header="Select expense types (use space to select multiple)" --no-limit)
   if [ -z "$selected_expense_types" ]; then
     echo "At least one expense type must be selected."
     return 1
   fi
 
-  selected_payment_type=$(go-ali-expense-tracker list payment| gum choose --header="Select payment type" --limit 1)
+  selected_payment_type=$(go-ali-expense-tracker list payment| gum filter --header="Select payment type" --limit 1)
   if [ -z "$selected_payment_type" ]; then
     echo "A payment type must be selected."
     return 1
