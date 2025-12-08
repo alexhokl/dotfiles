@@ -1,0 +1,10 @@
+#! /bin/bash
+
+function epub_notes() {
+	if [ -z "$(which markdown-to-epub)" ]; then
+		echo "markdown-to-epub has not been installed"
+		return
+	fi
+
+  fd -t f -e md . $HOME/git/notes/ | fzf-tmux --multi | xargs -I {} markdown-to-epub generate -f -l ja -i {} -o {}.epub
+}
