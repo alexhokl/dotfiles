@@ -156,6 +156,28 @@ gfmp() {
 	cat $commit_list_file | awk '{print $1}' | xargs git cherry-pick
 }
 
+gfmr() {
+	if [ -z "$(which git)" ]; then
+		echo "git has not been installed"
+		return
+	fi
+	if [ -z "$1" ]; then
+		echo "No commit message specified"
+		return
+	fi
+
+	local commits commit branches branch trimmed_branch commit_list_file
+	branches=$(git branch --remote | grep -v HEAD) &&
+	branch=$(echo "$branches" |
+					 fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+					 (echo "-$branch-" | sed "s/.* //" | sed "s/remotes\///")
+	trimmed_branch=$(echo $branch | tr -d ' ')
+	commit_list_file=$(mktemp)
+ 	git log --pretty=format:'%C(yellow)%h	%Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --date=short --decorate --no-merges -E --grep="(${1})" "${trimmed_branch}" > $commit_list_file
+	$EDITOR $commit_list_file
+	cat $commit_list_file | awk '{print $1}' | xargs git revert
+}
+
 ga() {
 	git ls-files --modified --others --exclude-standard | fzf-tmux -m | xargs git add
 }
