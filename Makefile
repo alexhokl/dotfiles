@@ -29,8 +29,6 @@ dotfiles: ## Installs the dotfiles.
 	mkdir -p $(HOME)/.config;
 	ln -snf $(CURDIR)/.i3 $(HOME)/.config/sway;
 	ln -snf $(CURDIR)/.config/kdiff3rc $(HOME)/.config/kdiff3rc;
-	mkdir -p $(HOME)/.config/alacritty;
-	ln -snf $(CURDIR)/.config/alacritty/alacritty.yml $(HOME)/.config/alacritty/alacritty.yml;
 	mkdir -p $(HOME)/.config/atuin;
 	ln -snf $(CURDIR)/.config/atuin/config.toml $(HOME)/.config/atuin/config.toml;
 	mkdir -p $(HOME)/.local/share;
