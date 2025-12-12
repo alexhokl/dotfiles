@@ -62,6 +62,11 @@ prompt_git() {
 				s+='$';
 			fi;
 
+			# Check for submodule changes (modified content or different commits).
+			if git submodule status 2>/dev/null | grep -qE '^[+-]'; then
+				s+='S';
+			fi;
+
 		fi;
 
 		# Get the short symbolic ref.
