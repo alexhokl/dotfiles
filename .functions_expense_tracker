@@ -44,7 +44,7 @@ function expense_create() {
 
   go-ali-expense-tracker create entry \
     --date "$entry_date" \
-    --description "\"$description\"" \
+    --description "$description" \
     --amount "$amount" \
     $(for expense in $selected_expense_types; do echo --expenses "\"$expense\" "; done) \
     --payment "$selected_payment_type"
