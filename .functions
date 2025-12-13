@@ -629,6 +629,14 @@ function vgd() {
 	git diff --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
 }
 
+function vgdc() {
+  git diff --cached --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
+}
+
+function vgc() {
+  git diff HEAD~ HEAD --name-only | awk '{print "\"" $0 "\""}' | xargs $EDITOR
+}
+
 # open unmerged files in editor
 function vgum() {
 	git status --short | grep UU | awk '{print "\"" $2 "\""}' | xargs $EDITOR
