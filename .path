@@ -40,7 +40,11 @@ export PATH="/usr/local/opt/gnu-getopt/bin:${PATH}"
 # add mysql
 export PATH="/opt/homebrew/opt/mysql-client/bin:${PATH}"
 
+# add ruby gems path
 export PATH="${HOME}/.gem/ruby/3.2.0/bin:${PATH}"
+
+# add dotnet tools path
+export PATH="${HOME}/.dotnet/tools:${PATH}"
 
 # update cdpath
 export CDPATH=${CDPATH}:${GOPATH}
