@@ -103,7 +103,7 @@ function scrape_microsoft_learn_to_epub() {
   fi
 
   if [ -z "$1" ]; then
-    echo "Missing parameters. Usage: scrape_microsoft_learn <url>"
+    echo "Missing parameters. Usage: scrape_microsoft_learn_to_epub <url>"
     return
   fi
 
@@ -112,5 +112,52 @@ function scrape_microsoft_learn_to_epub() {
   markdown_file_directory=$(mktemp -d)
   scrape article --source microsoft --url "$1" > "$markdown_file_directory/temp.md"
   ebook-convert "$markdown_file_directory/temp.md" "${1##*/}.epub" --title "${1##*/}" --authors "microsoft Learn" --language "en" --no-default-epub-cover
+}
 
+function scrape_tofugu_to_epub() {
+  if [ -z "$(which scrape)" ]; then
+    echo "scrape has not been installed"
+    return
+  fi
+  if [ -z "$(which markdown-to-epub)" ]; then
+    echo "markdown-to-epub has not been installed"
+    return
+  fi
+
+  if [ -z "$1" ]; then
+    echo "Missing parameters. Usage: scrape_tofugu_to_epub <url>"
+    return
+  fi
+
+  local markdown_file_directory title output_filename
+
+  markdown_file_directory=$(mktemp -d)
+  scrape article --source tofugu --url "$1" > "$markdown_file_directory/temp.md"
+
+  # extract H1 header as title from the markdown file
+  title=$(grep -m 1 '^# ' "$markdown_file_directory/temp.md" | sed 's/^# //' | tr -d '\r\n')
+
+  # remove 〜 in title
+  title=${title//〜/}
+
+  # replace space with underscore in title
+  output_filename=${title// /_}.epub
+
+  # replace forbidden characters in filename
+  output_filename=${output_filename//\//-}
+
+  # remove brackets in filename
+  output_filename=${output_filename//\(/}
+  output_filename=${output_filename//\)/}
+
+  # remove unicode characters except alphanumeric, underscore, hyphen, dot
+  output_filename=$(echo "$output_filename" | sed 's/[^a-zA-Z0-9._-]//g')
+
+  # replace uppercase to lowercase
+  output_filename=$(echo "$output_filename" | tr 'A-Z' 'a-z')
+
+  # ensure filename does not start with underscore
+  output_filename=$(echo "$output_filename" | sed 's/^_//')
+
+  markdown-to-epub generate -l ja -i "${markdown_file_directory}/temp.md" -t "$title" -a "tofugu.com" -o "${output_filename}"
 }
