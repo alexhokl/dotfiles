@@ -6,5 +6,5 @@ function epub_notes() {
 		return
 	fi
 
-  fd -t f -e md . $HOME/git/notes/ | fzf-tmux --multi | xargs -I {} markdown-to-epub generate -f -l ja -t $(basename {}) -i {} -o {}.epub
+  fd -t f -e md . $HOME/git/notes/ | fzf-tmux --multi | xargs -I {} markdown-to-epub generate -f -l ja -i {} -o {}.epub
 }
