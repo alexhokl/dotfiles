@@ -129,7 +129,9 @@ function scrape_tofugu_to_epub() {
     return
   fi
 
-  local markdown_file_directory title output_filename
+  local markdown_file_directory title output_filename alternative_filename
+
+  alternative_filename=$(basename "$1")
 
   markdown_file_directory=$(mktemp -d)
   scrape article --source tofugu --url "$1" > "$markdown_file_directory/temp.md"
@@ -141,7 +143,7 @@ function scrape_tofugu_to_epub() {
   title=${title//〜/}
 
   # replace space with underscore in title
-  output_filename=${title// /_}.epub
+  output_filename=${title// /_}
 
   # replace forbidden characters in filename
   output_filename=${output_filename//\//-}
@@ -158,6 +160,12 @@ function scrape_tofugu_to_epub() {
 
   # ensure filename does not start with underscore
   output_filename=$(echo "$output_filename" | sed 's/^_//')
+
+  if [ -z "$output_filename" ]; then
+    output_filename="${alternative_filename}.epub"
+  else
+    output_filename="${output_filename}.epub"
+  fi
 
   markdown-to-epub generate -l ja -i "${markdown_file_directory}/temp.md" -t "$title" -a "tofugu.com" -o "${output_filename}"
 }
