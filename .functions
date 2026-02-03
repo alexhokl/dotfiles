@@ -660,3 +660,4 @@ source ${HOME}/.functions_stable_diffusion
 source ${HOME}/.functions_scrape
 source ${HOME}/.functions_expense_tracker
 source ${HOME}/.functions_epub
+source ${HOME}/.functions_jira

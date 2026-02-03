@@ -1,0 +1,471 @@
+#!/bin/bash
+
+# Updates the sprint assignment for a JIRA issue.
+# Usage: jira_update_sprint <JIRA_ID>
+# Arguments:
+#   JIRA_ID - The JIRA issue identifier (e.g., PROJ-123)
+# Dependencies: jira-cli, gum, awk
+# Description: Prompts the user to select a scrum board and then a sprint
+#              (active or future) from that board, then assigns the specified
+#              JIRA issue to the selected sprint.
+function jira_update_sprint() {
+  if [ -z "$1" ]; then
+    echo "Please provide a JIRA ID."
+    return 1
+  fi
+
+	if [ -z "$(which jira-cli)" ]; then
+		echo "jira-cli has not been installed"
+		return 1
+	fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+	local jira_id selected_sprint selected_board
+
+  jira_id=$1
+
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  selected_sprint=$(jira-cli list sprints --board-id $selected_board --state active --state future | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_sprint" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+
+  echo jira-cli update issue --id $jira_id --sprint "$selected_sprint"
+  jira-cli update issue --id $jira_id --sprint "$selected_sprint"
+}
+
+# Updates the feature field for a JIRA issue.
+# Usage: jira_update_feature <JIRA_ID>
+# Arguments:
+#   JIRA_ID - The JIRA issue identifier (e.g., PROJ-123)
+# Dependencies: jira-cli, gum, awk
+# Description: Prompts the user to select a feature from the available
+#              custom field values, then updates the specified JIRA issue
+#              with the selected feature.
+function jira_update_feature() {
+  if [ -z "$1" ]; then
+    echo "Please provide a JIRA ID."
+    return 1
+  fi
+
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local jira_id selected_feature
+
+  jira_id=$1
+
+  selected_feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$selected_feature" ]; then
+    echo "No feature selected."
+    return 1
+  fi
+
+  echo jira-cli update issue --id $jira_id --custom-field "Feature=$selected_feature"
+  jira-cli update issue --id $jira_id --custom-field "Feature=$selected_feature"
+}
+
+
+# Creates a new bug issue in JIRA with interactive prompts.
+# Usage: jira_create_bug
+# Dependencies: jira-cli, gum, awk, $EDITOR (or vi as fallback)
+# Description: Guides the user through creating a bug issue by prompting for:
+#              - Summary (required): Brief description of the bug
+#              - Description (optional): Opens $EDITOR for markdown description input
+#              - Project: JIRA project to create the bug in
+#              - Client: Customer/client associated with the bug
+#              - GCP Logging link (optional): Link to relevant GCP logs
+#              - Project Team: Team responsible for the bug
+#              - Feature: Feature area affected by the bug
+#              - Board and Sprint: Assigns the bug to a sprint on a scrum board
+function jira_create_bug() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local summary description_file project client logging_link project_team feature selected_board selected_sprint
+
+  # Get summary from user
+  summary=$(gum input --placeholder "Enter bug summary...")
+  if [ -z "$summary" ]; then
+    echo "No summary provided."
+    return 1
+  fi
+
+  # Create a temporary file for the description and open it in the default editor
+  description_file=$(mktemp /tmp/jira_bug_description_XXXXXX.md)
+  echo "Opening editor for bug description (save and quit when done)..."
+  ${EDITOR:-vi} "$description_file"
+
+  # Check if the description file is empty and clear it if so
+  if [ ! -s "$description_file" ]; then
+    description_file=""
+  fi
+
+  # Select project
+  project=$(jira-cli list projects | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$project" ]; then
+    echo "No project selected."
+    return 1
+  fi
+
+  # Select client
+  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$client" ]; then
+    echo "No client selected."
+    return 1
+  fi
+
+  # Get GCP logging link from user
+  logging_link=$(gum input --placeholder "Enter Link to GCP Logging (optional)...")
+
+  # Select project team
+  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$project_team" ]; then
+    echo "No project team selected."
+    return 1
+  fi
+
+  # Select feature
+  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$feature" ]; then
+    echo "No feature selected."
+    return 1
+  fi
+
+  # Select board for sprint
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select sprint
+  selected_sprint=$(jira-cli list sprints --board-id $selected_board --state active --state future | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_sprint" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+
+  # Build the command
+  local cmd="jira-cli create issue -p $project -t Bug -s \"$summary\" --custom-field \"Client=$client\" --custom-field \"Project Team=$project_team\" --custom-field \"Feature=$feature\" --sprint \"$selected_sprint\""
+
+  # Add optional fields
+  if [ -n "$description_file" ]; then
+    cmd="$cmd --description-file \"$description_file\""
+  fi
+
+  if [ -n "$logging_link" ]; then
+    cmd="$cmd --custom-field \"Link to GCP Logging=$logging_link\""
+  fi
+
+  echo "$cmd"
+  eval "$cmd"
+
+  # Clean up the temporary description file if it was created
+  if [ -n "$description_file" ] && [ -f "$description_file" ]; then
+    rm "$description_file"
+  fi
+}
+
+
+# Creates a new story issue in JIRA with interactive prompts.
+# Usage: jira_create_story
+# Dependencies: jira-cli, gum, awk, $EDITOR (or vi as fallback)
+# Description: Guides the user through creating a story issue by prompting for:
+#              - Summary (required): Brief description of the story
+#              - Description (optional): Opens $EDITOR for markdown description input
+#              - Project: JIRA project to create the story in
+#              - Client: Customer/client associated with the story
+#              - Project Team: Team responsible for the story
+#              - Feature: Feature area for the story
+#              - Board and Sprint: Assigns the story to a sprint on a scrum board
+function jira_create_story() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local summary description_file project client project_team feature selected_board selected_sprint
+
+  # Get summary from user
+  summary=$(gum input --placeholder "Enter story summary...")
+  if [ -z "$summary" ]; then
+    echo "No summary provided."
+    return 1
+  fi
+
+  # Create a temporary file for the description and open it in the default editor
+  description_file=$(mktemp /tmp/jira_story_description_XXXXXX.md)
+  echo "Opening editor for story description (save and quit when done)..."
+  ${EDITOR:-vi} "$description_file"
+
+  # Check if the description file is empty and clear it if so
+  if [ ! -s "$description_file" ]; then
+    description_file=""
+  fi
+
+  # Select project
+  project=$(jira-cli list projects | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$project" ]; then
+    echo "No project selected."
+    return 1
+  fi
+
+  # Select client
+  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$client" ]; then
+    echo "No client selected."
+    return 1
+  fi
+
+  # Select project team
+  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$project_team" ]; then
+    echo "No project team selected."
+    return 1
+  fi
+
+  # Select feature
+  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$feature" ]; then
+    echo "No feature selected."
+    return 1
+  fi
+
+  # Select board for sprint
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select sprint
+  selected_sprint=$(jira-cli list sprints --board-id $selected_board --state active --state future | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_sprint" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+
+  # Build the command
+  local cmd="jira-cli create issue -p $project -t Story -s \"$summary\" --custom-field \"Client=$client\" --custom-field \"Project Team=$project_team\" --custom-field \"Feature=$feature\" --sprint \"$selected_sprint\""
+
+  # Add optional description field
+  if [ -n "$description_file" ]; then
+    cmd="$cmd --description-file \"$description_file\""
+  fi
+
+  echo "$cmd"
+  eval "$cmd"
+
+  # Clean up the temporary description file if it was created
+  if [ -n "$description_file" ] && [ -f "$description_file" ]; then
+    rm "$description_file"
+  fi
+}
+
+
+# Creates a new task issue in JIRA with interactive prompts.
+# Usage: jira_create_task
+# Dependencies: jira-cli, gum, awk, $EDITOR (or vi as fallback)
+# Description: Guides the user through creating a task issue by prompting for:
+#              - Summary (required): Brief description of the task
+#              - Description (optional): Opens $EDITOR for markdown description input
+#              - Project: JIRA project to create the task in
+#              - Client: Customer/client associated with the task
+#              - Project Team: Team responsible for the task
+#              - Feature: Feature area for the task
+#              - Board and Sprint: Assigns the task to a sprint on a scrum board
+function jira_create_task() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local summary description_file project client project_team feature selected_board selected_sprint
+
+  # Get summary from user
+  summary=$(gum input --placeholder "Enter task summary...")
+  if [ -z "$summary" ]; then
+    echo "No summary provided."
+    return 1
+  fi
+
+  # Create a temporary file for the description and open it in the default editor
+  description_file=$(mktemp /tmp/jira_task_description_XXXXXX.md)
+  echo "Opening editor for task description (save and quit when done)..."
+  ${EDITOR:-vi} "$description_file"
+
+  # Check if the description file is empty and clear it if so
+  if [ ! -s "$description_file" ]; then
+    description_file=""
+  fi
+
+  # Select project
+  project=$(jira-cli list projects | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$project" ]; then
+    echo "No project selected."
+    return 1
+  fi
+
+  # Select client
+  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$client" ]; then
+    echo "No client selected."
+    return 1
+  fi
+
+  # Select project team
+  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$project_team" ]; then
+    echo "No project team selected."
+    return 1
+  fi
+
+  # Select feature
+  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  if [ -z "$feature" ]; then
+    echo "No feature selected."
+    return 1
+  fi
+
+  # Select board for sprint
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select sprint
+  selected_sprint=$(jira-cli list sprints --board-id $selected_board --state active --state future | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_sprint" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+
+  # Build the command
+  local cmd="jira-cli create issue -p $project -t Task -s \"$summary\" --custom-field \"Client=$client\" --custom-field \"Project Team=$project_team\" --custom-field \"Feature=$feature\" --sprint \"$selected_sprint\""
+
+  # Add optional description field
+  if [ -n "$description_file" ]; then
+    cmd="$cmd --description-file \"$description_file\""
+  fi
+
+  echo "$cmd"
+  eval "$cmd"
+
+  # Clean up the temporary description file if it was created
+  if [ -n "$description_file" ] && [ -f "$description_file" ]; then
+    rm "$description_file"
+  fi
+}
+
+
+# Updates the description for an existing JIRA issue.
+# Usage: jira_update_description <JIRA_ID>
+# Arguments:
+#   JIRA_ID - The JIRA issue identifier (e.g., PROJ-123)
+# Dependencies: jira-cli, $EDITOR (or vi as fallback)
+# Description: Fetches the existing description from the issue, opens $EDITOR
+#              for editing, then updates the JIRA issue with the new description.
+function jira_update_description() {
+  if [ -z "$1" ]; then
+    echo "Please provide a JIRA ID."
+    return 1
+  fi
+
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  local jira_id description_file
+
+  jira_id=$1
+
+  # Create a temporary file for the description
+  description_file=$(mktemp /tmp/jira_description_XXXXXX.md)
+
+  # Fetch existing description and populate the file
+  echo "Fetching existing description..."
+  jira-cli get issue --id "$jira_id" --description-only > "$description_file"
+
+  # Open the file in the default editor
+  echo "Opening editor for issue description (save and quit when done)..."
+  ${EDITOR:-vi} "$description_file"
+
+  # Check if the description file is empty
+  if [ ! -s "$description_file" ]; then
+    echo "No description provided."
+    rm "$description_file"
+    return 1
+  fi
+
+  # Update the issue with the new description
+  echo jira-cli update issue --id $jira_id --description-file "$description_file"
+  jira-cli update issue --id $jira_id --description-file "$description_file"
+
+  # Clean up the temporary description file
+  if [ -f "$description_file" ]; then
+    rm "$description_file"
+  fi
+}
+
