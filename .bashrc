@@ -243,4 +243,4 @@ test -r '/Users/alex/.opam/opam-init/init.sh' && . '/Users/alex/.opam/opam-init/
 # END opam configuration
 
 # OpenClaw Completion
-source <(openclaw completion --shell bash)
+# source <(openclaw completion --shell bash)
