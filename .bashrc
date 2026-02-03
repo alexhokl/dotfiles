@@ -241,3 +241,6 @@ eval "$(rbenv init - --no-rehash bash)"
 # This section can be safely removed at any time if needed.
 test -r '/Users/alex/.opam/opam-init/init.sh' && . '/Users/alex/.opam/opam-init/init.sh' > /dev/null 2> /dev/null || true
 # END opam configuration
+
+# OpenClaw Completion
+source <(openclaw completion --shell bash)
