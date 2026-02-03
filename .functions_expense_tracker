@@ -46,6 +46,6 @@ function expense_create() {
     --date "$entry_date" \
     --description "$description" \
     --amount "$amount" \
-    $(for expense in $selected_expense_types; do echo --expenses "\"$expense\" "; done) \
+    $(for expense in $selected_expense_types; do echo --expense "\"$expense\" "; done) \
     --payment "$selected_payment_type"
 }
