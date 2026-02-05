@@ -1,0 +1,34 @@
+#!/bin/bash
+
+function confluence_update() {
+  if [ -z "$(which confluence-cli)" ]; then
+    echo "confluence-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local selected_page_id selected_space_key
+
+  selected_space_key=$(confluence-cli list spaces | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_space_key" ]; then
+    echo "No space selected"
+    return 1
+  fi
+
+  selected_page_id=$(confluence-cli list pages --space-key "$selected_space_key" | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_page_id" ]; then
+    echo "No page selected"
+    return 1
+  fi
+
+  confluence-cli update page --id "$selected_page_id"
+}
