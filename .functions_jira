@@ -469,3 +469,55 @@ function jira_update_description() {
   fi
 }
 
+
+# Lists issues from selected sprints on a JIRA board.
+# Usage: jira_list_sprint_issues
+# Dependencies: jira-cli, gum, awk
+# Description: Prompts the user to select a scrum board, then allows selecting
+#              one or more active/future sprints from that board. Lists all
+#              issues in the selected sprints.
+function jira_list_sprint_issues() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local selected_board selected_sprints
+
+  # Select board
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select one or more sprints (active and future), capture ID and name
+  selected_sprints=$(jira-cli list sprints --board-id $selected_board --state active --state future | gum filter --no-limit)
+  if [ -z "$selected_sprints" ]; then
+    echo "No sprints selected."
+    return 1
+  fi
+
+  # List issues for each selected sprint
+  echo "$selected_sprints" | while read -r sprint_line; do
+    if [ -n "$sprint_line" ]; then
+      local sprint_id sprint_name
+      sprint_id=$(echo "$sprint_line" | awk '{print $1}')
+      sprint_name=$(echo "$sprint_line" | awk '{$1=""; print $0}' | sed 's/^ *//')
+      echo "=== Sprint $sprint_id: $sprint_name ==="
+      jira-cli list issues --sprint "$sprint_id" --order-by "RANK ASC"
+      echo ""
+    fi
+  done
+}
+
