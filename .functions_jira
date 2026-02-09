@@ -148,7 +148,7 @@ function jira_create_bug() {
   fi
 
   # Select client
-  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  client=$(jira-cli list custom-field-values --name Client --value-only | gum filter --limit 1 --placeholder "Select Client...")
   if [ -z "$client" ]; then
     echo "No client selected."
     return 1
@@ -158,14 +158,14 @@ function jira_create_bug() {
   logging_link=$(gum input --placeholder "Enter Link to GCP Logging (optional)...")
 
   # Select project team
-  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  project_team=$(jira-cli list custom-field-values --name "Project Team" --value-only | gum filter --limit 1 --placeholder "Select Project Team...")
   if [ -z "$project_team" ]; then
     echo "No project team selected."
     return 1
   fi
 
   # Select feature
-  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  feature=$(jira-cli list custom-field-values --name Feature --value-only | gum filter --limit 1 --placeholder "Select Feature...")
   if [ -z "$feature" ]; then
     echo "No feature selected."
     return 1
@@ -199,11 +199,6 @@ function jira_create_bug() {
 
   echo "$cmd"
   eval "$cmd"
-
-  # Clean up the temporary description file if it was created
-  if [ -n "$description_file" ] && [ -f "$description_file" ]; then
-    rm "$description_file"
-  fi
 }
 
 
@@ -261,21 +256,21 @@ function jira_create_story() {
   fi
 
   # Select client
-  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  client=$(jira-cli list custom-field-values --name Client --value-only | gum filter --limit 1 --placeholder "Select Client...")
   if [ -z "$client" ]; then
     echo "No client selected."
     return 1
   fi
 
   # Select project team
-  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  project_team=$(jira-cli list custom-field-values --name "Project Team" --value-only | gum filter --limit 1 --placeholder "Select Project Team...")
   if [ -z "$project_team" ]; then
     echo "No project team selected."
     return 1
   fi
 
   # Select feature
-  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  feature=$(jira-cli list custom-field-values --name Feature --value-only | gum filter --limit 1 --placeholder "Select Feature...")
   if [ -z "$feature" ]; then
     echo "No feature selected."
     return 1
@@ -305,11 +300,6 @@ function jira_create_story() {
 
   echo "$cmd"
   eval "$cmd"
-
-  # Clean up the temporary description file if it was created
-  if [ -n "$description_file" ] && [ -f "$description_file" ]; then
-    rm "$description_file"
-  fi
 }
 
 
@@ -367,21 +357,21 @@ function jira_create_task() {
   fi
 
   # Select client
-  client=$(jira-cli list custom-field-values --name Client | gum filter --limit 1 | awk '{print $2}')
+  client=$(jira-cli list custom-field-values --name Client --value-only | gum filter --limit 1 --placeholder "Select Client...")
   if [ -z "$client" ]; then
     echo "No client selected."
     return 1
   fi
 
   # Select project team
-  project_team=$(jira-cli list custom-field-values --name "Project Team" | gum filter --limit 1 | awk '{print $2}')
+  project_team=$(jira-cli list custom-field-values --name "Project Team" --value-only | gum filter --limit 1 --placeholder "Select Project Team...")
   if [ -z "$project_team" ]; then
     echo "No project team selected."
     return 1
   fi
 
   # Select feature
-  feature=$(jira-cli list custom-field-values --name Feature | gum filter --limit 1 | awk '{print $2}')
+  feature=$(jira-cli list custom-field-values --name Feature --value-only | gum filter --limit 1 --placeholder "Select Feature...")
   if [ -z "$feature" ]; then
     echo "No feature selected."
     return 1
