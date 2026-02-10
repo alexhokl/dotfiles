@@ -1876,6 +1876,39 @@ function gcp_kub_version_regular_valid() {
 	gcloud container get-server-config --flatten="channels" --filter="channels.channel=REGULAR" --format json | jq -r '.[] | .channels.validVersions[]'
 }
 
+function gcp_kub_cgroup() {
+  if [ -z "$(which gcloud)" ]; then
+    echo "gcloud has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+
+  local project_id cluster_name node_pool_name
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+  if [ -z "$project_id" ]; then
+    echo No project selected
+    return
+  fi
+
+  cluster_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
+  if [ -z "$cluster_name" ]; then
+    echo No cluster selected
+    return
+  fi
+
+  node_pool_name=$(gcloud container node-pools list --project $project_id --cluster $cluster_name --format "value(name)" | gum filter --limit=1)
+  if [ -z "$node_pool_name" ]; then
+    echo No node pool selected
+    return
+  fi
+
+  gcloud container node-pools describe $node_pool_name --cluster $cluster_name --project $project_id --format="value(Config.effectiveCgroupMode)"
+}
+
 function gcp_all_ip_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
