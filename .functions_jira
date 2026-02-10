@@ -131,7 +131,12 @@ function jira_create_bug() {
   fi
 
   # Create a temporary file for the description and open it in the default editor
-  description_file=$(mktemp /tmp/jira_bug_description_XXXXXX.md)
+  sanitized_summary=$(echo "$summary" | tr -s '[:space:][:punct:]' '_' | tr -d '[:cntrl:]' | tr '[:upper:]' '[:lower:]')
+  description_file="/tmp/${sanitized_summary}.md"
+  # if description_file does not exist, create it
+  if [ ! -f "$description_file" ]; then
+    description_file=$(mktemp "${description_file}")
+  fi
   echo "Opening editor for bug description (save and quit when done)..."
   ${EDITOR:-vi} "$description_file"
 
@@ -248,7 +253,12 @@ function jira_create_story() {
   fi
 
   # Create a temporary file for the description and open it in the default editor
-  description_file=$(mktemp /tmp/jira_story_description_XXXXXX.md)
+  sanitized_summary=$(echo "$summary" | tr -s '[:space:][:punct:]' '_' | tr -d '[:cntrl:]' | tr '[:upper:]' '[:lower:]')
+  description_file="/tmp/${sanitized_summary}.md"
+  # if description_file does not exist, create it
+  if [ ! -f "$description_file" ]; then
+    description_file=$(mktemp "${description_file}")
+  fi
   echo "Opening editor for story description (save and quit when done)..."
   ${EDITOR:-vi} "$description_file"
 
@@ -358,7 +368,12 @@ function jira_create_task() {
   fi
 
   # Create a temporary file for the description and open it in the default editor
-  description_file=$(mktemp /tmp/jira_task_description_XXXXXX.md)
+  sanitized_summary=$(echo "$summary" | tr -s '[:space:][:punct:]' '_' | tr -d '[:cntrl:]' | tr '[:upper:]' '[:lower:]')
+  description_file="/tmp/${sanitized_summary}.md"
+  # if description_file does not exist, create it
+  if [ ! -f "$description_file" ]; then
+    description_file=$(mktemp "${description_file}")
+  fi
   echo "Opening editor for task description (save and quit when done)..."
   ${EDITOR:-vi} "$description_file"
 
