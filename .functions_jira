@@ -553,3 +553,59 @@ function jira_list_sprint_issues() {
   done
 }
 
+# Links two JIRA issues together with a selected link type.
+# Usage: jira_link_issue <FROM_JIRA_ID> <TO_JIRA_ID>
+# Arguments:
+#  FROM_JIRA_ID - The JIRA issue identifier to link from (e.g., PROJ-123)
+#  TO_JIRA_ID - The JIRA issue identifier to link to (e.g., PROJ-456)
+#  Dependencies: jira-cli, gum, awk, xargs
+#  Description: Prompts the user to select a link type, then links the
+#               specified JIRA issues together using that link type.
+#               Example link types: "blocks", "is blocked by", "relates to"
+#
+function jira_link_issue() {
+  if [ -z "$1" ]; then
+    echo "Please provide a JIRA ID to link from\nFormat: jira_link_issue <FROM_JIRA_ID> <TO_JIRA_ID>"
+    return 1
+  fi
+
+  if [ -z "$2" ]; then
+    echo "Please provide a JIRA ID to link to\nFormat: jira_link_issue <FROM_JIRA_ID> <TO_JIRA_ID>"
+    return 1
+  fi
+
+	if [ -z "$(which jira-cli)" ]; then
+		echo "jira-cli has not been installed"
+		return 1
+	fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which xargs)" ]; then
+    echo "xargs has not been installed"
+    return 1
+  fi
+
+  local from_jira_id to_jira_id link_type selected_link_type
+
+  selected_link_type=$(jira-cli list link-types | gum filter --limit 1 | awk -F '(' '{print $1}' | xargs)
+  if [ -z "$selected_link_type" ]; then
+    echo "No link type selected."
+    return 1
+  fi
+
+  from_jira_id=$1
+  to_jira_id=$2
+
+  echo jira-cli update issue --link-type "$selected_link_type" --id "$from_jira_id" --link-issue "$to_jira_id"
+  jira-cli update issue --link-type "$selected_link_type" --id "$from_jira_id" --link-issue "$to_jira_id"
+}
+
