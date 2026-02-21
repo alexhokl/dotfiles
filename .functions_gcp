@@ -14,10 +14,9 @@ function gcp_accounts() {
 		return
 	fi
 
-	local selection account
+	local account
 
-	selection=$(gcloud auth list --format json | jq -r '.[] | .account + "," + .status' | gum filter --limit=1)
-	account=$(echo $selection | awk -F, '{print $1}')
+  account=$(gcloud auth list --format "value(account)" | gum filter --limit=1 --header "Select an account...")
 	if [ -z "$account" ]; then
 		echo No account selected
 		return
@@ -41,10 +40,15 @@ function gcp_projects() {
 		return
 	fi
 
-	local selection project_id
+	local project_name project_id
 
-  selection=$(gcloud projects list --format "csv(project_id,name)" | gum filter --limit=1)
-	project_id=$(echo $selection | awk -F, '{print $1}')
+  project_name=$(gcloud projects list --format "value(name)" | gum filter --limit=1 --header "Select a project...")
+  if [ -z "$project_name" ]; then
+    echo No project selected
+    return
+  fi
+
+	project_id=$(gcloud projects list --filter "name:$project_name" --format "value(project_id)")
 	if [ -z "$project_id" ]; then
 		echo No project selected
 		return
