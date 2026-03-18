@@ -31,6 +31,8 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/.config/kdiff3rc $(HOME)/.config/kdiff3rc;
 	mkdir -p $(HOME)/.config/atuin;
 	ln -snf $(CURDIR)/.config/atuin/config.toml $(HOME)/.config/atuin/config.toml;
+	mkdir -p $(HOME)/.config/ghostty;
+	ln -snf $(CURDIR)/.config/ghostty/config.toml $(HOME)/.config/ghostty/config.toml;
 	mkdir -p $(HOME)/.local/share;
 	ln -snf $(CURDIR)/.fonts $(HOME)/.local/share/fonts;
 	ln -snf $(CURDIR)/.bash_profile $(HOME)/.profile;

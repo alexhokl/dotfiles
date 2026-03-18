@@ -1,0 +1,5 @@
+copy-on-select = clipboard
+font-family = "ComicShannsMono Nerd Font Mono"
+# font-family = "Inconsolata Nerd Font Mono"
+#
+keybind = opt+h=goto_split:left
