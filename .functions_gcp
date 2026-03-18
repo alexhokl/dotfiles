@@ -610,6 +610,38 @@ gcp_role_permission_search() {
 		| fzf-tmux -m
 }
 
+gcp_service_account_role_list() {
+  if [ -z "$(which gcloud)" ]; then
+    echo "gcloud has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which jq)" ]; then
+    echo "jq has not been installed"
+    return
+  fi
+
+  local project_id service_account_email
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+  if [ -z "$project_id" ]; then
+    echo No project selected
+    return
+  fi
+  service_account_email=$(gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email' | gum filter --limit=1)
+  if [ -z "$service_account_email" ]; then
+    echo No service account selected
+    return
+  fi
+  gcloud projects get-iam-policy $project_id \
+    --flatten="bindings[].members" \
+    --filter="bindings.members:${service_account_email}" \
+    --format="table(bindings.role)"
+}
+
 gcp_sql_authorized_ip_addresses_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
