@@ -18,6 +18,7 @@ export PATH=${PATH}:/snap/bin
 export PATH=${PATH}:$HOME/.krew/bin
 export PATH=${PATH}:$HOME/.opam/default/bin
 export PATH=${PATH}:$HOME/.pub-cache/bin
+export PATH=${PATH}:$HOME/.atuin/bin
 
 # add go path
 export PATH="/usr/local/go/bin:${GOPATH}/bin:${PATH}"
