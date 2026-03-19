@@ -43,6 +43,7 @@ dotfiles: ## Installs the dotfiles.
 			sudo ln -snf /usr/bin/pinentry-curses /usr/local/bin/pinentry; \
 		fi; \
 	fi;
+	ln -snf $(CURDIR)/.config/yamlfmt $(HOME)/.config/yamlfmt;
 	mkdir -p $(HOME)/Pictures;
 	#ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
 	mkdir -p $(HOME)/.config/fontconfig;
