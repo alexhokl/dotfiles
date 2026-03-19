@@ -138,8 +138,6 @@ ctrl_n_shortcuts = true
 # This applies for new installs. Old installs will keep the old behaviour unless configured otherwise.
 enter_accept = true
 
-search_mode = "daemon-fuzzy"
-
 ## Defaults to "emacs".  This specifies the keymap on the startup of `atuin
 ## search`.  If this is set to "auto", the startup keymap mode in the Atuin
 ## search is automatically selected based on the shell's keymap where the
@@ -220,8 +218,8 @@ enabled = true
 
 [daemon]
 ## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
-enabled = true
-autostart = true
+enabled = false
+autostart = false
 
 ## How often the daemon should sync in seconds
 # sync_frequency = 300
