@@ -14,7 +14,7 @@ bin: ## Installs the bin directory files.
 .PHONY: dotfiles
 dotfiles: ## Installs the dotfiles.
 	# add aliases for dotfiles
-	for file in $(shell find $(CURDIR) -name ".*" -not -name ".gitignore" -not -name ".git" -not -name ".config" -not -name ".github" -not -name ".*.swp" -not -name ".gnupg"); do \
+	for file in $(shell find $(CURDIR) -name ".*" -not -name ".gitignore" -not -name ".git" -not -name "config" -not -name ".github" -not -name ".*.swp" -not -name ".gnupg"); do \
 		f=$$(basename $$file); \
 		ln -sfn $$file $(HOME)/$$f; \
 	done; \
@@ -28,11 +28,11 @@ dotfiles: ## Installs the dotfiles.
 	# git update-index --skip-worktree $(CURDIR)/.gitconfig;
 	mkdir -p $(HOME)/.config;
 	ln -snf $(CURDIR)/.i3 $(HOME)/.config/sway;
-	ln -snf $(CURDIR)/.config/kdiff3rc $(HOME)/.config/kdiff3rc;
-	mkdir -p $(HOME)/.config/atuin;
-	ln -snf $(CURDIR)/.config/atuin/config.toml $(HOME)/.config/atuin/config.toml;
-	mkdir -p $(HOME)/.config/ghostty;
-	ln -snf $(CURDIR)/.config/ghostty/config.toml $(HOME)/.config/ghostty/config.toml;
+	ln -snf $(CURDIR)/config/kdiff3rc $(HOME)/.config/kdiff3rc;
+	ln -snf $(CURDIR)/config/atuin $(HOME)/.config/atuin;
+	ln -snf $(CURDIR)/config/ghostty $(HOME)/.config/ghostty;
+	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
+	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
 	mkdir -p $(HOME)/.local/share;
 	ln -snf $(CURDIR)/.fonts $(HOME)/.local/share/fonts;
 	ln -snf $(CURDIR)/.bash_profile $(HOME)/.profile;
@@ -43,17 +43,14 @@ dotfiles: ## Installs the dotfiles.
 			sudo ln -snf /usr/bin/pinentry-curses /usr/local/bin/pinentry; \
 		fi; \
 	fi;
-	ln -snf $(CURDIR)/.config/yamlfmt $(HOME)/.config/yamlfmt;
-	mkdir -p $(HOME)/Pictures;
-	#ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
-	mkdir -p $(HOME)/.config/fontconfig;
-	ln -snf $(CURDIR)/.config/fontconfig/fontconfig.conf $(HOME)/.config/fontconfig/fontconfig.conf;
+	# mkdir -p $(HOME)/Pictures;
+	# ln -snf $(CURDIR)/central-park.jpg $(HOME)/Pictures/central-park.jpg;
 
-	if [[ "$$OSTYPE" != "darwin"* ]]; then \
-		xrdb -merge $(HOME)/.Xdefaults || true \
-		xrdb -merge $(HOME)/.Xresources || true \
-		fc-cache -f -v || true \
-	fi;
+	# if [[ "$$OSTYPE" != "darwin"* ]]; then \
+	# 	xrdb -merge $(HOME)/.Xdefaults || true \
+	# 	xrdb -merge $(HOME)/.Xresources || true \
+	# 	fc-cache -f -v || true \
+	# fi;
 
 # Get the laptop's model number so we can generate xorg specific files.
 LAPTOP_XORG_FILE=/etc/X11/xorg.conf.d/10-dell-xps-display.conf
