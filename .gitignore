@@ -28,3 +28,4 @@ Session.vim
 .irssi/startup
 .rainbow_oauth
 .nginx/conf.d/*
+config/atuin/atuin-receipt.json
