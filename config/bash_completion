@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# loop through bash_completion.d and source each file
+for file in $HOME/.config/bash_completion.d/*; do
+  source "$file"
+done

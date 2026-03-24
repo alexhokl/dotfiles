@@ -34,6 +34,8 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
 	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
 	mkdir -p $(HOME)/.local/share;
+	ln -snf $(CURDIR)/config/bash_completion $(HOME)/.config/bash_completion;
+	ln -snf $(CURDIR)/config/bash_completion.d $(HOME)/.config/bash_completion.d;
 	ln -snf $(CURDIR)/.fonts $(HOME)/.local/share/fonts;
 	ln -snf $(CURDIR)/.bash_profile $(HOME)/.profile;
 	if [ -f /usr/local/bin/pinentry ]; then \

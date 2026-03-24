@@ -92,6 +92,9 @@ if ! shopt -oq posix; then
 	elif [[ -f /usr/local/etc/bash_completion ]]; then
 		# shellcheck source=/dev/null
 		. /usr/local/etc/bash_completion
+	elif [[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]]; then
+		# shellcheck source=/dev/null
+		. /opt/homebrew/etc/profile.d/bash_completion.sh
 	fi
 fi
 if [[ -d /etc/bash_completion.d/ ]]; then
