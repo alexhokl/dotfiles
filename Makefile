@@ -17,7 +17,11 @@ dotfiles: ## Installs the dotfiles.
 	for file in $(shell find $(CURDIR) -name ".*" -not -name ".gitignore" -not -name ".git" -not -name "config" -not -name ".github" -not -name ".*.swp" -not -name ".gnupg"); do \
 		f=$$(basename $$file); \
 		ln -sfn $$file $(HOME)/$$f; \
-	done; \
+	done;
+	for file in $(shell find $(CURDIR) -name "functions_*"); do \
+		f=$$(basename $$file); \
+		ln -sfn $$file $(HOME)/.$$f; \
+	done;
 	gpg --list-keys || true;
 	mkdir -p $(HOME)/.gnupg
 	for file in $(shell find $(CURDIR)/.gnupg); do \
