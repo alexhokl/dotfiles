@@ -67,5 +67,9 @@ gh_issue_create() {
 	body_file=$(mktemp).md
 	$EDITOR $body_file
 
-	gh issue create --title "$title" --body-file $body_file --label "$labels" --project todo
+	if [ -s "$body_file" ]; then
+		gh issue create --title "$title" --body-file $body_file --label "$labels" --project todo
+	else
+		gh issue create --title "$title" --body "" --label "$labels" --project todo
+	fi
 }
