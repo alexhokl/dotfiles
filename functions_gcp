@@ -3434,6 +3434,253 @@ gcp_resource_all() {
 	gcloud asset search-all-resources --scope=projects/${project_id} --format=json | jq -r '.[] | .name'
 }
 
+gcp_scc_findings_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id severity state filter
+
+	project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	severity=$(gum choose --header "Select severity" "CRITICAL" "HIGH" "MEDIUM" "LOW" "ANY")
+	if [ -z "$severity" ]; then
+		echo No severity selected
+		return
+	fi
+
+	state=$(gum choose --header "Select finding state" "ACTIVE" "INACTIVE" "ANY")
+	if [ -z "$state" ]; then
+		echo No state selected
+		return
+	fi
+
+	filter=""
+	if [ "$severity" != "ANY" ]; then
+		filter="severity=\"$severity\""
+	fi
+	if [ "$state" != "ANY" ]; then
+		if [ -n "$filter" ]; then
+			filter="$filter AND state=\"$state\""
+		else
+			filter="state=\"$state\""
+		fi
+	fi
+
+	if [ -n "$filter" ]; then
+		gcloud scc findings list projects/$project_id --source=- --format json --filter "$filter" \
+			| jq -r '.[] | .finding.name + "," + .finding.severity + "," + .finding.state + "," + .finding.category + "," + .finding.resourceName' \
+			| gum table -c ID,Severity,State,Category,Resource -w 80,10,10,40,60
+	else
+		gcloud scc findings list projects/$project_id --source=- --format json \
+			| jq -r '.[] | .finding.name + "," + .finding.severity + "," + .finding.state + "," + .finding.category + "," + .finding.resourceName' \
+			| gum table -c ID,Severity,State,Category,Resource -w 80,10,10,40,60
+	fi
+}
+
+gcp_scc_cve_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id severity state filter cve_rows selected_row cve_id cve_filter
+
+	project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	severity=$(gum choose --header "Select severity" "CRITICAL" "HIGH" "MEDIUM" "LOW" "ANY")
+	if [ -z "$severity" ]; then
+		echo No severity selected
+		return
+	fi
+
+	state=$(gum choose --header "Select finding state" "ACTIVE" "INACTIVE" "ANY")
+	if [ -z "$state" ]; then
+		echo No state selected
+		return
+	fi
+
+	filter=""
+	if [ "$severity" != "ANY" ]; then
+		filter="severity=\"$severity\""
+	fi
+	if [ "$state" != "ANY" ]; then
+		if [ -n "$filter" ]; then
+			filter="$filter AND state=\"$state\""
+		else
+			filter="state=\"$state\""
+		fi
+	fi
+
+	if [ -n "$filter" ]; then
+		cve_rows=$(gcloud scc findings list projects/$project_id --source=- --format json --filter "$filter" \
+			| jq -r '.[] | select(.finding.vulnerability.cve.id != null) | .finding.vulnerability.cve.id + "," + .finding.severity + "," + .finding.state' \
+			| sort -r | uniq -c | awk '{count=$1; $1=""; sub(/^ /, ""); print $0 "," count}')
+	else
+		cve_rows=$(gcloud scc findings list projects/$project_id --source=- --format json \
+			| jq -r '.[] | select(.finding.vulnerability.cve.id != null) | .finding.vulnerability.cve.id + "," + .finding.severity + "," + .finding.state' \
+			| sort -r | uniq -c | awk '{count=$1; $1=""; sub(/^ /, ""); print $0 "," count}')
+	fi
+
+	if [ -z "$cve_rows" ]; then
+		echo "No CVEs found"
+		return
+	fi
+
+	selected_row=$(echo "$cve_rows" | awk -F, '{printf "%-20s %-10s %-10s %-5s\n", $1, $2, $3, $4}' | gum filter --header "CVE-ID               Severity   State      Count" --limit=1)
+	if [ -z "$selected_row" ]; then
+		return
+	fi
+
+	cve_id=$(echo "$selected_row" | awk '{print $1}')
+
+	cve_filter="vulnerability.cve.id=\"$cve_id\""
+	if [ -n "$filter" ]; then
+		cve_filter="$filter AND $cve_filter"
+	fi
+
+	echo "Findings for $cve_id:"
+	local findings_json selected_finding finding_name
+
+	findings_json=$(gcloud scc findings list projects/$project_id --source=- --format json --filter "$cve_filter" \
+		| jq -r 'sort_by(.finding.eventTime) | reverse')
+
+	selected_finding=$(echo "$findings_json" \
+		| jq -r '.[] | .finding.name + "," + .finding.severity + "," + .finding.state + "," + .finding.eventTime + "," + ([ .finding.kubernetes.objects[]? | .ns + "/" + .name ] | join("|")) + "," + .finding.category + "," + .finding.resourceName' \
+		| awk -F, '{printf "%-80s %-10s %-10s %-25s %-40s %-40s %-60s\n", $1, $2, $3, $4, $5, $6, $7}' \
+		| gum filter --header "$(printf '%-80s %-10s %-10s %-25s %-40s %-40s %-60s' ID Severity State EventTime Objects Category Resource)" --limit=1)
+	if [ -z "$selected_finding" ]; then
+		return
+	fi
+
+	finding_name=$(echo "$selected_finding" | awk '{print $1}')
+
+	echo "$findings_json" | jq -r --arg name "$finding_name" '
+		.[] | select(.finding.name == $name) | .finding |
+		"Finding:          " + .name,
+		"Severity:         " + .severity,
+		"State:            " + .state,
+		"Category:         " + .category,
+		"Event Time:       " + .eventTime,
+		"Resource:         " + .resourceName,
+		"File:             " + (.files[0].path // ""),
+		"",
+		"CVE:              " + .vulnerability.cve.id,
+		"Zero Day:         " + (.vulnerability.cve.zeroDayVulnerability // .vulnerability.cve.zero_day | tostring),
+		"Upstream Fix:     " + (.vulnerability.cve.upstreamFixAvailable // .vulnerability.cve.upstream_fix_available | tostring),
+		"Impact:           " + (.vulnerability.cve.impact // ""),
+		"CVSS Score:       " + (.vulnerability.cve.cvssv3.baseScore | tostring),
+		"Attack Vector:    " + .vulnerability.cve.cvssv3.attackVector,
+		"",
+		"Offending Package:" + .vulnerability.offendingPackage.packageName // .vulnerability.offending_package.package_name // "",
+		"  Version:        " + (.vulnerability.offendingPackage.packageVersion // .vulnerability.offending_package.package_version // ""),
+		"  Type:           " + (.vulnerability.offendingPackage.packageType // .vulnerability.offending_package.package_type // ""),
+		"Fixed Package:    " + (.vulnerability.fixedPackage.packageName // .vulnerability.fixed_package.package_name // ""),
+		"  Version:        " + (.vulnerability.fixedPackage.packageVersion // .vulnerability.fixed_package.package_version // ""),
+		"",
+		"Summary:          " + .vulnerability.cve.description
+	'
+}
+
+gcp_scc_findings_mark_as_inactive() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id selected finding_name
+
+	project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	selected=$(gcloud scc findings list projects/$project_id --source=- --format json \
+		--filter 'state="ACTIVE"' \
+		| jq -r '.[] | .finding.name + "," + .finding.severity + "," + .finding.category + "," + .finding.resourceName' \
+		| gum filter --no-limit --header "Select findings to mark as inactive...")
+	if [ -z "$selected" ]; then
+		echo No finding selected
+		return
+	fi
+
+	echo "$selected" | while IFS= read -r line; do
+		finding_name=$(echo $line | awk -F, '{print $1}')
+		gcloud scc findings update $finding_name --state INACTIVE
+	done
+}
+
+gcp_scc_findings_mark_as_active() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id selected finding_name
+
+	project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	selected=$(gcloud scc findings list projects/$project_id --source=- --format json \
+		--filter 'state="INACTIVE"' \
+		| jq -r '.[] | .finding.name + "," + .finding.severity + "," + .finding.category + "," + .finding.resourceName' \
+		| gum filter --no-limit --header "Select findings to mark as active...")
+	if [ -z "$selected" ]; then
+		echo No finding selected
+		return
+	fi
+
+	echo "$selected" | while IFS= read -r line; do
+		finding_name=$(echo $line | awk -F, '{print $1}')
+		gcloud scc findings update $finding_name --state ACTIVE
+	done
+}
+
 gcp_container_registry_delete_images() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
