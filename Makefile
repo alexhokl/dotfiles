@@ -37,6 +37,11 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/ghostty $(HOME)/.config/ghostty;
 	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
 	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
+	# if [[ "$$OSTYPE" == "darwin"* ]]; then \
+	# 	ln -snf $(CURDIR)/config/confluence-cli "$(HOME)/Library/Application Support/confluence-cli"; \
+	# else \
+	# 	ln -snf $(CURDIR)/config/confluence-cli $(HOME)/.config/confluence-cli; \
+	# fi;
 	mkdir -p $(HOME)/.local/share;
 	ln -snf $(CURDIR)/config/bash_completion $(HOME)/.config/bash_completion;
 	ln -snf $(CURDIR)/config/bash_completion.d $(HOME)/.config/bash_completion.d;
