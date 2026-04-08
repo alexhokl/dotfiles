@@ -377,3 +377,102 @@ function jira_link_issue() {
   jira-cli update issue --link-type "$selected_link_type" --id "$from_jira_id" --link-issue "$to_jira_id"
 }
 
+# Updates the name of an active or future sprint on a JIRA scrum board.
+# Usage: jira_update_sprint_name
+# Dependencies: jira-cli, gum, awk, jq
+# Description: Prompts the user to select a scrum board, then select an
+#              active or future sprint from that board, then enter a new
+#              name for the sprint. The input is pre-filled with the
+#              current sprint name fetched via the jira-cli API.
+function jira_update_sprint_name() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which jq)" ]; then
+    echo "jq has not been installed"
+    return 1
+  fi
+
+  local selected_board selected_sprint new_name
+
+  # Select board
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 --placeholder "Select a board..." | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select sprint (active and future)
+  local selected_sprint_line
+  selected_sprint_line=$(jira-cli list sprints --board-id "$selected_board" --state active --state future | gum filter --limit 1 --placeholder "Select a sprint to rename...")
+  if [ -z "$selected_sprint_line" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+  selected_sprint=$(awk '{print $1}' <<< "$selected_sprint_line")
+  local current_name
+  current_name=$(jira-cli get sprint -i "$selected_sprint" --format json | jq -r '.name')
+
+  # Prompt for new sprint name, pre-filled with the current sprint name
+  new_name=$(gum input --value "$current_name" --placeholder "Enter new sprint name...")
+  if [ -z "$new_name" ]; then
+    echo "No sprint name provided."
+    return 1
+  fi
+
+  jira-cli update sprint --id "$selected_sprint" --name "$new_name"
+}
+
+
+# Starts a future sprint on a JIRA scrum board, making it active.
+# Usage: jira_start_sprint
+# Dependencies: jira-cli, gum, awk
+# Description: Prompts the user to select a scrum board, then select a future
+#              sprint from that board, then starts the sprint (changing its
+#              state from future to active).
+function jira_start_sprint() {
+  if [ -z "$(which jira-cli)" ]; then
+    echo "jira-cli has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return 1
+  fi
+
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return 1
+  fi
+
+  local selected_board selected_sprint
+
+  # Select board
+  selected_board=$(jira-cli list boards --type scrum | gum filter --limit 1 --placeholder "Select a board..." | awk '{print $1}')
+  if [ -z "$selected_board" ]; then
+    echo "No board selected."
+    return 1
+  fi
+
+  # Select a future sprint to start
+  selected_sprint=$(jira-cli list sprints --board-id "$selected_board" --state future | gum filter --limit 1 --placeholder "Select a future sprint to start..." | awk '{print $1}')
+  if [ -z "$selected_sprint" ]; then
+    echo "No sprint selected."
+    return 1
+  fi
+
+  jira-cli start sprint -i "$selected_sprint"
+}
