@@ -9,6 +9,7 @@
 #              - parent:      Assigns a parent epic (excluding closed epics)
 #              - feature:     Selects a feature from available custom field values
 #              - sprint:      Selects a scrum board and active/future sprint, or moves to backlog
+#              - add label:   Selects one or more labels from available JIRA labels and adds them to the issue
 function jira_update() {
   if [ -z "$(which jira-cli)" ]; then
     echo "jira-cli has not been installed"
@@ -35,7 +36,7 @@ function jira_update() {
   fi
 
   # Select which field to update
-  update_field=$(gum choose "description" "parent" "feature" "sprint")
+  update_field=$(gum choose "description" "parent" "feature" "sprint" "add label")
   if [ -z "$update_field" ]; then
     echo "No field selected."
     return 1
@@ -113,6 +114,22 @@ function jira_update() {
         echo jira-cli update issue --id "$jira_id" --sprint "$selected_sprint"
         jira-cli update issue --id "$jira_id" --sprint "$selected_sprint"
       fi
+      ;;
+    add\ label)
+      local selected_labels
+      selected_labels=$(jira-cli list labels | gum filter --no-limit --placeholder "Select labels to add (TAB to select multiple)...")
+      if [ -z "$selected_labels" ]; then
+        echo "No labels selected."
+        return 1
+      fi
+
+      local label_flags=()
+      while IFS= read -r label; do
+        label_flags+=(--add-label "$label")
+      done <<< "$selected_labels"
+
+      echo jira-cli update issue --id "$jira_id" "${label_flags[@]}"
+      jira-cli update issue --id "$jira_id" "${label_flags[@]}"
       ;;
   esac
 }
