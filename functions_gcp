@@ -470,7 +470,7 @@ gcp_vpc_peerings() {
 		return
 	fi
 
-	vpc=$(gcloud compute networks list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	vpc=$(gcloud compute networks list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$vpc" ]; then
 		echo No VPC selected
 		return
@@ -631,7 +631,7 @@ gcp_service_account_role_list() {
     echo No project selected
     return
   fi
-  service_account_email=$(gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email' | gum filter --limit=1)
+  service_account_email=$(gcloud iam service-accounts list --project $project_id --format "value(email)" | gum filter --limit=1)
   if [ -z "$service_account_email" ]; then
     echo No service account selected
     return
@@ -664,7 +664,7 @@ gcp_sql_authorized_ip_addresses_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No server selected
 		return
@@ -698,7 +698,7 @@ gcp_sql_authorized_ip_addresses_list_by_name() {
 	ip_list_file=$(mktemp)
 	name_list_file=$(mktemp)
 
-	for s in $(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name'); do
+	for s in $(gcloud sql instances list --project $project_id --format "value(name)"); do
 		gcloud sql instances describe $s --project $project_id --format json | jq -r ".settings.ipConfiguration.authorizedNetworks[] | \"$s,\" + .name + \",\" + .value" >> $ip_list_file
 		gcloud sql instances describe $s --project $project_id --format json | jq -r ".settings.ipConfiguration.authorizedNetworks[] | .name" >> $name_list_file
 	done
@@ -737,7 +737,7 @@ gcp_sql_authorized_ip_addresses_update_by_name() {
 	ip_list_file=$(mktemp)
 	name_list_file=$(mktemp)
 
-	for s in $(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name'); do
+	for s in $(gcloud sql instances list --project $project_id --format "value(name)"); do
 		gcloud sql instances describe $s --project $project_id --format json | jq -r ".settings.ipConfiguration.authorizedNetworks[] | \"$s,\" + .name + \",\" + .value" >> $ip_list_file
 		gcloud sql instances describe $s --project $project_id --format json | jq -r ".settings.ipConfiguration.authorizedNetworks[] | .name" >> $name_list_file
 	done
@@ -801,7 +801,7 @@ gcp_sql_authorized_ip_addresses_add() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -859,13 +859,13 @@ gcp_sql_authorized_ip_addresses_update() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	rule_name=$(gcloud sql instances describe $server_name --project $project_id --format json | jq -r '.settings.ipConfiguration.authorizedNetworks[] | .name' | sort | gum filter --limit=1)
+	rule_name=$(gcloud sql instances describe $server_name --project $project_id --format "value(settings.ipConfiguration.authorizedNetworks[].name)" | sort | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rules found
 		return
@@ -915,13 +915,13 @@ gcp_sql_authorized_ip_addresses_delete() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	rule_name=$(gcloud sql instances describe $server_name --project $project_id --format json | jq -r '.settings.ipConfiguration.authorizedNetworks[] | .name' | sort | gum filter --limit=1)
+	rule_name=$(gcloud sql instances describe $server_name --project $project_id --format "value(settings.ipConfiguration.authorizedNetworks[].name)" | sort | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rules found
 		return
@@ -948,10 +948,6 @@ gcp_sql_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -973,10 +969,6 @@ gcp_sql_describe() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -986,7 +978,7 @@ gcp_sql_describe() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1004,10 +996,6 @@ gcp_sql_database_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -1017,7 +1005,7 @@ gcp_sql_database_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+  server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1035,10 +1023,6 @@ gcp_sql_database_add() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name new_database_name project_id
 
@@ -1048,7 +1032,7 @@ gcp_sql_database_add() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1072,10 +1056,6 @@ gcp_sql_database_delete() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name database_name project_id
 
@@ -1085,13 +1065,13 @@ gcp_sql_database_delete() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	database_name=$(gcloud sql databases list -i $server_name --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	database_name=$(gcloud sql databases list -i $server_name --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$database_name" ]; then
 		echo No database selected
 		return
@@ -1122,7 +1102,7 @@ gcp_sql_database_flags_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1134,10 +1114,6 @@ gcp_sql_database_flags_list() {
 gcp_sql_database_flag_patch() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
-		return
-	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
 		return
 	fi
 	if [ -z "$(which xh)" ]; then
@@ -1153,7 +1129,7 @@ gcp_sql_database_flag_patch() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1183,10 +1159,6 @@ gcp_sql_service_account_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local project_id
 
@@ -1196,7 +1168,7 @@ gcp_sql_service_account_list() {
 		return
 	fi
 
-	gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name + "," + .serviceAccountEmailAddress' | sort | gum table -c "Server,Service Account" -w "40,100"
+	gcloud sql instances list --project $project_id --format "table(name,serviceAccountEmailAddress)"
 }
 
 gcp_sql_export_create() {
@@ -1212,10 +1184,6 @@ gcp_sql_export_create() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name database_name project_id file_name bucket_name
 
@@ -1225,13 +1193,13 @@ gcp_sql_export_create() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+  server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	database_name=$(gcloud sql databases list -i $server_name --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	database_name=$(gcloud sql databases list -i $server_name --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$database_name" ]; then
 		echo No database selected
 		return
@@ -1265,10 +1233,6 @@ gcp_sql_backup_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local project_id bucket_name
 
@@ -1278,13 +1242,44 @@ gcp_sql_backup_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
 	gcloud sql backups list --project $project_id --instance $server_name
+}
+
+gcp_sql_backup_create() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gsutil)" ]; then
+		echo "gsutil has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id server_name
+
+	project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
+	if [ -z "$server_name" ]; then
+		echo No SQL server selected
+		return
+	fi
+
+	gcloud sql backups create --project $project_id --instance $server_name
 }
 
 gcp_sql_user_list() {
@@ -1296,10 +1291,6 @@ gcp_sql_user_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id selected_user
 
@@ -1309,13 +1300,13 @@ gcp_sql_user_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	gcloud sql users list --project $project_id --instance $server_name --format json | jq -r '.[] | .name'
+	gcloud sql users list --project $project_id --instance $server_name --format "value(name)"
 }
 
 gcp_sql_user_create() {
@@ -1327,10 +1318,6 @@ gcp_sql_user_create() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id selected_user
 
@@ -1340,7 +1327,7 @@ gcp_sql_user_create() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1370,10 +1357,6 @@ gcp_sql_user_delete() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id selected_user
 
@@ -1383,13 +1366,13 @@ gcp_sql_user_delete() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	selected_user=$(gcloud sql users list --project $project_id --instance $server_name --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	selected_user=$(gcloud sql users list --project $project_id --instance $server_name --format "value(name)" | gum filter --limit=1)
 	if [ -z "$selected_user" ]; then
 		echo No user selected
 		return
@@ -1407,10 +1390,6 @@ gcp_sql_user_set_password() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id selected_user password
 
@@ -1420,13 +1399,13 @@ gcp_sql_user_set_password() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	selected_user=$(gcloud sql users list --project $project_id --instance $server_name --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	selected_user=$(gcloud sql users list --project $project_id --instance $server_name --format "value(name)" | gum filter --limit=1)
 	if [ -z "$selected_user" ]; then
 		echo No user selected
 		return
@@ -1450,10 +1429,6 @@ gcp_sql_deletion_protection_enable() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -1463,7 +1438,7 @@ gcp_sql_deletion_protection_enable() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1481,10 +1456,6 @@ gcp_sql_deletion_protection_disable() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -1494,7 +1465,7 @@ gcp_sql_deletion_protection_disable() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1512,10 +1483,6 @@ gcp_sql_operation_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id
 
@@ -1525,7 +1492,7 @@ gcp_sql_operation_list() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
@@ -1543,10 +1510,6 @@ gcp_sql_operation_wait() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local server_name project_id operation_name
 
@@ -1556,13 +1519,13 @@ gcp_sql_operation_wait() {
 		return
 	fi
 
-	server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No SQL server selected
 		return
 	fi
 
-	operation_name=$(gcloud sql operations list --project $project_id --instance $server_name --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	operation_name=$(gcloud sql operations list --project $project_id --instance $server_name --format "value(name)" | gum filter --limit=1)
 	if [ -z "$operation_name" ]; then
 		echo No operation selected
 		return
@@ -1593,7 +1556,7 @@ gcp_sql_latest_recovery_time() {
     return
   fi
 
-  server_name=$(gcloud sql instances list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+  server_name=$(gcloud sql instances list --project $project_id --format "value(name)" | gum filter --limit=1)
   if [ -z "$server_name" ]; then
     echo No SQL server selected
     return
@@ -1609,10 +1572,6 @@ gcp_kub_list() {
 	fi
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
-		return
-	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
 		return
 	fi
 
@@ -1636,10 +1595,6 @@ gcp_kub_get_credentials() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local cluster_name new_context_name project_id
 
@@ -1649,7 +1604,7 @@ gcp_kub_get_credentials() {
 		return
 	fi
 
-	cluster_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	cluster_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$cluster_name" ]; then
 		echo No cluster selected
 		return
@@ -1699,7 +1654,7 @@ gcp_kub_authorized_ip_addresses_list() {
 		return
 	fi
 
-	server_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No cluster selected
 		return
@@ -1734,7 +1689,7 @@ gcp_kub_authorized_ip_addresses_add() {
 		return
 	fi
 
-	server_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No cluster selected
 		return
@@ -1791,7 +1746,7 @@ gcp_kub_authorized_ip_addresses_update() {
 		return
 	fi
 
-	server_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No cluster selected
 		return
@@ -1845,7 +1800,7 @@ gcp_kub_authorized_ip_addresses_delete() {
 		return
 	fi
 
-	server_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	server_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$server_name" ]; then
 		echo No cluster selected
 		return
@@ -1885,7 +1840,7 @@ function gcp_kub_node_pools_list() {
 		return
 	fi
 
-	cluster_name=$(gcloud container clusters list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	cluster_name=$(gcloud container clusters list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$cluster_name" ]; then
 		echo "No cluster selected"
 		return
@@ -1999,8 +1954,8 @@ function gcp_vpc_subnet_list() {
 	fi
 
 	subnets_file=$(mktemp)
-	for n in $(gcloud compute networks list --project $project_id --format json | jq -r '.[] | .name'); do
-		for s in $(gcloud compute networks subnets list --project $project_id --network=$n --format json | jq -r '.[] | .name'); do
+	for n in $(gcloud compute networks list --project $project_id --format "value(name)"); do
+		for s in $(gcloud compute networks subnets list --project $project_id --network=$n --format "value(name)"); do
 			echo $n,$s >> $subnets_file
 		done
 	done
@@ -2055,7 +2010,7 @@ function gcp_vpc_firewall_rule_describe {
 		return
 	fi
 
-	rule_name=$(gcloud compute firewall-rules list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	rule_name=$(gcloud compute firewall-rules list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rule selected
 		return
@@ -2086,7 +2041,7 @@ function gcp_vpc_firewall_rule_disable() {
 		return
 	fi
 
-	rule_name=$(gcloud compute firewall-rules list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	rule_name=$(gcloud compute firewall-rules list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rule selected
 		return
@@ -2117,7 +2072,7 @@ function gcp_vpc_firewall_rule_enable() {
 		return
 	fi
 
-	rule_name=$(gcloud compute firewall-rules list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	rule_name=$(gcloud compute firewall-rules list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rule selected
 		return
@@ -2148,7 +2103,7 @@ function gcp_vpc_firewall_rule_create() {
 		return
 	fi
 
-	network_name=$(gcloud compute networks list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	network_name=$(gcloud compute networks list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$network_name" ]; then
 		echo No network selected
 		return
@@ -2205,7 +2160,7 @@ function gcp_vpc_firewall_rule_delete() {
 		return
 	fi
 
-	rule_name=$(gcloud compute firewall-rules list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	rule_name=$(gcloud compute firewall-rules list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$rule_name" ]; then
 		echo No rule selected
 		return
@@ -2236,7 +2191,7 @@ function gcp_service_account_list() {
 		return
 	fi
 
-	gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email'
+	gcloud iam service-accounts list --project $project_id --format "value(email)"
 }
 
 function gcp_service_account_key_list() {
@@ -2261,7 +2216,7 @@ function gcp_service_account_key_list() {
 		return
 	fi
 
-	sa=$(gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email' | gum filter --limit=1)
+	sa=$(gcloud iam service-accounts list --project $project_id --format "value(email)" | gum filter --limit=1)
 	if [ -z "$sa" ]; then
 		echo No service account selected
 		return
@@ -2292,13 +2247,13 @@ function gcp_service_account_key_delete() {
 		return
 	fi
 
-	sa=$(gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email' | gum filter --limit=1)
+	sa=$(gcloud iam service-accounts list --project $project_id --format "value(email)" | gum filter --limit=1)
 	if [ -z "$sa" ]; then
 		echo No service account selected
 		return
 	fi
 
-	key_id=$(gcloud iam service-accounts keys list --project $project_id --iam-account $sa --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	key_id=$(gcloud iam service-accounts keys list --project $project_id --iam-account $sa --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$key_id" ]; then
 		echo No key selected
 		return
@@ -2329,7 +2284,7 @@ function gcp_service_account_key_create() {
 		return
 	fi
 
-	sa=$(gcloud iam service-accounts list --project $project_id --format json | jq -r '.[] | .email' | gum filter --no-fuzzy --limit=1)
+	sa=$(gcloud iam service-accounts list --project $project_id --format "value(email)" | gum filter --no-fuzzy --limit=1)
 	if [ -z "$sa" ]; then
 		echo No service account selected
 		return
@@ -2366,7 +2321,7 @@ function gcp_logging_metrics_list() {
 		return
 	fi
 
-	gcloud logging metrics list --project $project_id --format json | jq -r '.[] | .name'
+	gcloud logging metrics list --project $project_id --format "value(name)"
 }
 
 function gcp_logging_metrics_describe() {
@@ -2391,7 +2346,7 @@ function gcp_logging_metrics_describe() {
 		return
 	fi
 
-	metric=$(gcloud logging metrics list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	metric=$(gcloud logging metrics list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$metric" ]; then
 		echo No metric selected
 		return
@@ -2466,7 +2421,7 @@ function gcp_logging_metrics_delete() {
 		return
 	fi
 
-	metrics=$(gcloud logging metrics list --project $project_id --format json | jq -r '.[] | .name' | gum filter --no-limit)
+	metrics=$(gcloud logging metrics list --project $project_id --format "value(name)" | gum filter --no-limit)
 	if [ -z "$metrics" ]; then
 		echo No metric selected
 		return
@@ -2803,10 +2758,6 @@ gcp_services_search() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local search_term
 
@@ -2828,10 +2779,6 @@ gcp_services_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local project_id policy
 
@@ -2851,10 +2798,6 @@ gcp_filestore_list() {
 	fi
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
-		return
-	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
 		return
 	fi
 
@@ -2880,10 +2823,6 @@ gcp_lint() {
 	fi
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
-		return
-	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
 		return
 	fi
 
@@ -2929,7 +2868,7 @@ gcp_vm_commitment_describe() {
 		return
 	fi
 
-	commitment_id=$(gcloud compute commitments list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	commitment_id=$(gcloud compute commitments list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$commitment_id" ]; then
 		echo No commitment selected
 		return
@@ -2969,7 +2908,7 @@ gcp_nat_router_describe() {
 		return
 	fi
 
-	router_id=$(gcloud compute routers list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	router_id=$(gcloud compute routers list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$router_id" ]; then
 		echo No router selected
 		return
@@ -2992,7 +2931,7 @@ gcp_nat_router_nats_list() {
 		return
 	fi
 
-	router_id=$(gcloud compute routers list --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	router_id=$(gcloud compute routers list --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$router_id" ]; then
 		echo No router selected
 		return
@@ -3008,10 +2947,6 @@ gcp_secrets_create_empty() {
 	fi
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
-		return
-	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
 		return
 	fi
 
@@ -3048,10 +2983,6 @@ gcp_secrets_update() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local secret_name project_id dir original_file updated_file
 	dir=$(mktemp -d)
@@ -3062,7 +2993,7 @@ gcp_secrets_update() {
 		return
 	fi
 
-	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$secret_name" ]; then
 		echo No secret selected
 		return
@@ -3077,6 +3008,7 @@ gcp_secrets_update() {
 		return
 	fi
 
+	perl -pi -e 'chomp if eof' $dir/$secret_name.updated.json
 	gcloud secrets versions add $secret_name --project $project_id --data-file $dir/$secret_name.updated.json
 }
 
@@ -3089,10 +3021,6 @@ gcp_secrets_update_single_line() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local secret_name project_id original_password new_password
 
@@ -3102,7 +3030,7 @@ gcp_secrets_update_single_line() {
 		return
 	fi
 
-	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$secret_name" ]; then
 		echo No secret selected
 		return
@@ -3127,10 +3055,6 @@ gcp_secrets_diff() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local secret_name project_id base_version new_version temp_dir
 
@@ -3140,19 +3064,19 @@ gcp_secrets_diff() {
 		return
 	fi
 
-	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$secret_name" ]; then
 		echo No secret selected
 		return
 	fi
 
-	base_version=$(gcloud secrets versions list $secret_name --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $6}' | gum filter --limit=1)
+	base_version=$(gcloud secrets versions list $secret_name --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$base_version" ]; then
 		echo No base version selected
 		return
 	fi
 
-	new_version=$(gcloud secrets versions list $secret_name --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $6}' | gum filter --limit=1)
+	new_version=$(gcloud secrets versions list $secret_name --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$new_version" ]; then
 		echo No new version selected
 		return
@@ -3174,10 +3098,6 @@ gcp_secrets_list() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local secret_name project_id
 
@@ -3187,7 +3107,7 @@ gcp_secrets_list() {
 		return
 	fi
 
-	gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}'
+	gcloud secrets list --project $project_id --format "value(name.basename())"
 }
 
 gcp_secrets_dump() {
@@ -3199,10 +3119,6 @@ gcp_secrets_dump() {
 		echo "gum has not been installed"
 		return
 	fi
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	local secret_name project_id
 
@@ -3212,7 +3128,7 @@ gcp_secrets_dump() {
 		return
 	fi
 
-	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$secret_name" ]; then
 		echo No secret selected
 		return
@@ -3227,10 +3143,6 @@ gcp_secrets_iam_bindings_list() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3245,7 +3157,7 @@ gcp_secrets_iam_bindings_list() {
 		return
 	fi
 
-	secret_name=$(gcloud secrets list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$secret_name" ]; then
 		echo No secret selected
 		return
@@ -3260,10 +3172,6 @@ gcp_pubsub_topic_list() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3278,7 +3186,7 @@ gcp_pubsub_topic_list() {
 		return
 	fi
 
-	gcloud pubsub topics list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | sort
+	gcloud pubsub topics list --project $project_id --format "value(name.basename())" | sort
 }
 
 gcp_pubsub_topic_describe() {
@@ -3287,10 +3195,6 @@ gcp_pubsub_topic_describe() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3305,7 +3209,7 @@ gcp_pubsub_topic_describe() {
 		return
 	fi
 
-	topic_name=$(gcloud pubsub topics list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	topic_name=$(gcloud pubsub topics list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$topic_name" ]; then
 		echo No topic selected
 		return
@@ -3320,10 +3224,6 @@ gcp_pubsub_subscription_list() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3338,7 +3238,7 @@ gcp_pubsub_subscription_list() {
 		return
 	fi
 
-	gcloud pubsub subscriptions list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | sort
+	gcloud pubsub subscriptions list --project $project_id --format "value(name.basename())" | sort
 }
 
 gcp_pubsub_subscription_describe() {
@@ -3347,10 +3247,6 @@ gcp_pubsub_subscription_describe() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3365,7 +3261,7 @@ gcp_pubsub_subscription_describe() {
 		return
 	fi
 
-	subscription_name=$(gcloud pubsub subscriptions list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	subscription_name=$(gcloud pubsub subscriptions list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ "${subscription_name}" == "" ]; then
 		echo No subscription selected
 		return
@@ -3380,10 +3276,6 @@ gcp_pubsub_subscription_pull() {
 		return
 	fi
 
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
-		return
-	fi
 
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
@@ -3398,7 +3290,7 @@ gcp_pubsub_subscription_pull() {
 		return
 	fi
 
-	subscription_name=$(gcloud pubsub subscriptions list --project $project_id --format json | jq -r '.[] | .name' | awk -F '/' '{print $4}' | gum filter --limit=1)
+	subscription_name=$(gcloud pubsub subscriptions list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
 	if [ "${subscription_name}" == "" ]; then
 		echo No subscription selected
 		return
@@ -3712,7 +3604,7 @@ gcp_container_registry_delete_images() {
 		return
 	fi
 
-	image_name=$(gcloud container images list --repository $repository_name --project $project_id --format json | jq -r '.[] | .name' | gum filter --limit=1)
+	image_name=$(gcloud container images list --repository $repository_name --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ "${image_name}" == "" ]; then
 		echo No image selected
 		return
