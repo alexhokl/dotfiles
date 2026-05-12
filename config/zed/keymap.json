@@ -1,0 +1,157 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  // -------------------------------------------------------------------------
+  // Insert mode
+  // -------------------------------------------------------------------------
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // jk to escape to normal mode (mirrors vim: inoremap jk <Esc>)
+      "j k": "vim::NormalBefore"
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Normal mode — editing
+  // -------------------------------------------------------------------------
+  {
+    "context": "Editor && vim_mode == normal && !menu",
+    "bindings": {
+      // Y yanks to end of line, consistent with D and C (mirrors vim: nnoremap Y y$)
+      "shift-y": ["workspace::SendKeystrokes", "y $"],
+
+      // Save file (mirrors vim: nnoremap <leader>w :w<CR>)
+      ", w": "workspace::Save",
+
+      // Close buffer/tab (mirrors vim: nnoremap <leader>q :q<CR>)
+      ", q": "pane::CloseActiveItem",
+
+      // Copy absolute file path to clipboard (mirrors vim: nnoremap <leader>fp ...)
+      ", f p": "workspace::CopyPath",
+
+      // Toggle file explorer / project panel (mirrors vim: nnoremap <leader>n — Oil)
+      ", n": "project_panel::ToggleFocus",
+
+      // Open buffer/tab switcher (mirrors vim: nnoremap <leader>b — Telescope buffers)
+      ", b": "tab_switcher::Toggle",
+
+      // Open file finder (mirrors vim: nnoremap <C-p> — Telescope find_files)
+      // NOTE: overrides vim default ctrl-p (go back in jump list); Zed default cmd-p is preserved as alternative
+      "ctrl-p": "file_finder::Toggle",
+
+      // Live grep / project-wide search (mirrors vim: nnoremap <C-t> — Telescope live_grep)
+      // NOTE: overrides Zed default ctrl-t (editor::Transpose); use cmd-shift-f as alternative
+      "ctrl-t": "pane::DeploySearch",
+
+      // Find symbols in current file (mirrors vim: nnoremap <leader>fs — Telescope treesitter)
+      ", f s": "outline::Toggle",
+
+      // Find symbols in entire project (mirrors vim: nnoremap <leader>fm — Telescope methods)
+      ", f m": "project_symbols::Toggle",
+
+      // Grep word under cursor in project (mirrors vim: nnoremap <leader>F — Telescope grep_string)
+      ", shift-f": ["workspace::SendKeystrokes", "cmd-shift-f"],
+
+      // Rename symbol (mirrors vim: nnoremap <leader>rn — LSP rename; Zed vim default is `cd`)
+      ", r n": "editor::Rename",
+
+      // Toggle relative line numbers (mirrors vim: nnoremap <leader>rn toggle relnum)
+      // Note: using a distinct binding since ,rn is taken by rename above
+      ", r l": "editor::ToggleRelativeLineNumbers",
+
+      // Open diagnostics list (mirrors vim: nnoremap <leader>tdq — quickfix diagnostics)
+      ", t d q": "diagnostics::Deploy",
+
+      // Toggle diagnostics for current file (mirrors vim: nnoremap <leader>tdf — Trouble buffer)
+      ", t d f": ["diagnostics::Deploy", { "focus": true }],
+
+      // Git: open git panel / status (mirrors vim: nnoremap <leader>gs — :Git)
+      ", g s": "git_panel::ToggleFocus",
+
+      // Git: toggle blame (mirrors vim: nnoremap <leader>gb — :Git blame)
+      ", g b": "editor::ToggleGitBlame",
+
+      // Git: stage hunk (mirrors vim: nnoremap <leader>hs — gitsigns stage_hunk)
+      ", h s": "editor::ToggleSelectedDiffHunks",
+
+      // Git: revert/restore hunk (mirrors vim: nnoremap <leader>gco — Gread; gitsigns reset_hunk)
+      ", g c o": "editor::RevertSelectedHunks",
+
+      // Git: preview hunk diff inline (mirrors vim: nnoremap <leader>gd — gitsigns preview_hunk)
+      ", g d": "editor::ExpandAllDiffHunks",
+
+      // Fold all (mirrors vim: nnoremap <leader>c0 — set foldlevel=0)
+      ", c 0": "editor::FoldAll",
+
+      // Unfold all (mirrors vim: nnoremap <leader>c9 — set foldlevel=99)
+      ", c 9": "editor::UnfoldAll",
+
+      // Debugger keybindings (mirrors vim: F5/F9/F10/F11/F12 — DAP)
+      "f5":  "debugger::Continue",
+      "f9":  "editor::ToggleBreakpoint",
+      "f10": "debugger::StepOver",
+      "f11": "debugger::StepInto",
+      "f12": "debugger::StepOut"
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Normal + Visual mode — pane/window navigation
+  // (mirrors vim: nnoremap <C-h/j/k/l> — window jumps)
+  // -------------------------------------------------------------------------
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Navigate panes with Ctrl-hjkl (mirrors vim C-w h/j/k/l shortcuts)
+      // NOTE: Zed's vim mode supports ctrl-w h/j/k/l natively; these add bare ctrl-hjkl
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight"
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Normal mode — buffer cycling
+  // (mirrors vim: nnoremap <C-x> :bnext / <C-z> :bprev)
+  // -------------------------------------------------------------------------
+  {
+    "context": "Editor && vim_mode == normal && !menu",
+    "bindings": {
+      // NOTE: ctrl-x overrides vim default (decrement number); ctrl-z overrides undo on some systems
+      "ctrl-x": "pane::ActivateNextItem",
+      "ctrl-z": "pane::ActivatePrevItem"
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Visual mode — indentation (re-select after indent/outdent)
+  // (mirrors vim: vnoremap < <gv / vnoremap > >gv)
+  // -------------------------------------------------------------------------
+  {
+    "context": "Editor && vim_mode == visual && !menu",
+    "bindings": {
+      ">": ["workspace::SendKeystrokes", "> g v"],
+      "<": ["workspace::SendKeystrokes", "< g v"]
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Dock panels — ctrl-hjkl navigation (so it works from terminal, panels etc.)
+  // -------------------------------------------------------------------------
+  {
+    "context": "Dock",
+    "bindings": {
+      "ctrl-h": "workspace::ActivatePaneLeft",
+      "ctrl-j": "workspace::ActivatePaneDown",
+      "ctrl-k": "workspace::ActivatePaneUp",
+      "ctrl-l": "workspace::ActivatePaneRight"
+    }
+  }
+]

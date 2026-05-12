@@ -35,6 +35,8 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/kdiff3rc $(HOME)/.config/kdiff3rc;
 	ln -snf $(CURDIR)/config/atuin $(HOME)/.config/atuin;
 	ln -snf $(CURDIR)/config/ghostty $(HOME)/.config/ghostty;
+	ln -snf $(CURDIR)/config/zed/settings.json $(HOME)/.config/zed/settings.json;
+	ln -snf $(CURDIR)/config/zed/keymap.json $(HOME)/.config/zed/keymap.json;
 	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
 	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
 	# if [[ "$$OSTYPE" == "darwin"* ]]; then \
