@@ -72,7 +72,7 @@ function gcp_vm_list() {
 
   gcloud compute instances list \
 		--project $project_id \
-		--format='table(id,name,status,zone,machineType,networkInterfaces[0].networkIP :label=Internal_IP,networkInterfaces[0].accessConfigs[0].natIP :label=External_IP)'
+		--format='table(id,name,status,zone,machineType,disks[0].licenses.slice(-1:).flatten().map().basename() :label=OS,networkInterfaces[0].networkIP :label=Internal_IP,networkInterfaces[0].accessConfigs[0].natIP :label=External_IP)'
 }
 
 function gcp_vm_start() {
