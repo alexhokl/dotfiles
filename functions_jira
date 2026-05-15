@@ -148,6 +148,7 @@ function jira_update() {
 #              - Project Team: Team responsible for the issue
 #              - Feature: Feature area for the issue
 #              - Board and Sprint: Assigns the issue to a sprint on a scrum board, or adds to backlog
+#              - Labels (optional): Select zero or more labels to attach to the issue
 function jira_create() {
   if [ -z "$(which jira-cli)" ]; then
     echo "jira-cli has not been installed"
@@ -258,6 +259,13 @@ function jira_create() {
     selected_sprint="$sprint_choice"
   fi
 
+  # Select labels (optional)
+  local selected_labels labels_arg=""
+  selected_labels=$(jira-cli list labels | gum filter --no-limit --placeholder "Select labels (TAB to select multiple, Enter to skip)...")
+  if [ -n "$selected_labels" ]; then
+    labels_arg=$(echo "$selected_labels" | tr '\n' ',' | sed 's/,$//')
+  fi
+
   # Capitalise the issue type for jira-cli (story -> Story, bug -> Bug, task -> Task)
   local issue_type_cap
   issue_type_cap=$(echo "$issue_type" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
@@ -275,6 +283,10 @@ function jira_create() {
 
   if [ -n "$logging_link" ]; then
     cmd="$cmd --custom-field \"Link to GCP Logging=$logging_link\""
+  fi
+
+  if [ -n "$labels_arg" ]; then
+    cmd="$cmd --labels \"$labels_arg\""
   fi
 
   echo "$cmd"
