@@ -957,7 +957,8 @@ gcp_sql_list() {
 		return
 	fi
 
-	gcloud sql instances list --project $project_id
+	gcloud sql instances list --project $project_id \
+		--format="table(name, databaseVersion, gceZone:label=LOCATION, settings.tier, settings.dataDiskSizeGb:label=STORAGE_GB, state, ipAddresses[0].ipAddress:label=PRIMARY_ADDRESS, ipAddresses[1].ipAddress:label=PRIVATE_ADDRESS)"
 }
 
 gcp_sql_describe() {
@@ -3137,6 +3138,33 @@ gcp_secrets_dump() {
 	gcloud secrets versions access latest --secret $secret_name --project $project_id
 }
 
+gcp_secrets_dump_ending_indicator() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local secret_name project_id
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	secret_name=$(gcloud secrets list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$secret_name" ]; then
+		echo No secret selected
+		return
+	fi
+
+	printf '%s***\n' "$(gcloud secrets versions access latest --secret $secret_name --project $project_id)"
+}
+
 gcp_secrets_iam_bindings_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
@@ -3571,6 +3599,116 @@ gcp_scc_findings_mark_as_active() {
 		finding_name=$(echo $line | awk -F, '{print $1}')
 		gcloud scc findings update $finding_name --state ACTIVE
 	done
+}
+
+gcp_sql_migration_connection_profile_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	gcloud database-migration connection-profiles list --project $project_id \
+		--format="table(name.basename(),displayName,state,dbprovider,createTime)"
+}
+
+gcp_sql_migration_connection_profile_describe() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id profile_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	profile_name=$(gcloud database-migration connection-profiles list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$profile_name" ]; then
+		echo No connection profile selected
+		return
+	fi
+
+	gcloud database-migration connection-profiles describe $profile_name --project $project_id --region $region
+}
+
+gcp_sql_migration_job_list() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs list --project $project_id --region $region \
+		--format="table(name.basename(),displayName,state,type,createTime)"
+}
+
+gcp_sql_migration_job_describe() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id job_name
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$job_name" ]; then
+		echo No migration job selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs describe $job_name --project $project_id
 }
 
 gcp_container_registry_delete_images() {
