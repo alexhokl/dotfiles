@@ -3198,6 +3198,30 @@ gcp_secrets_dump() {
 	gcloud secrets versions access latest --secret $secret_name --project $project_id
 }
 
+gcp_secrets_dump_all() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	for secret_name in $(gcloud secrets list --project $project_id --format "value(name.basename())"); do
+		gcloud secrets versions access latest --secret $secret_name --project $project_id > $secret_name
+		echo "Written $secret_name"
+	done
+}
+
 gcp_secrets_dump_ending_indicator() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
@@ -3754,7 +3778,7 @@ gcp_sql_migration_job_describe() {
 		return
 	fi
 
-	local project_id job_name
+	local project_id job_name region
 
   project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
 	if [ -z "$project_id" ]; then
@@ -3762,13 +3786,19 @@ gcp_sql_migration_job_describe() {
 		return
 	fi
 
-	job_name=$(gcloud database-migration migration-jobs list --project $project_id --format "value(name.basename())" | gum filter --limit=1)
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
 	if [ -z "$job_name" ]; then
 		echo No migration job selected
 		return
 	fi
 
-	gcloud database-migration migration-jobs describe $job_name --project $project_id
+	gcloud database-migration migration-jobs describe $job_name --project $project_id --region $region
 }
 
 gcp_container_registry_delete_images() {
