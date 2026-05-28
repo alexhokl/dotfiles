@@ -3740,6 +3740,39 @@ gcp_sql_migration_connection_profile_describe() {
 	gcloud database-migration connection-profiles describe $profile_name --project $project_id --region $region
 }
 
+gcp_sql_migration_connection_profile_delete() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id profile_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	profile_name=$(gcloud database-migration connection-profiles list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$profile_name" ]; then
+		echo No connection profile selected
+		return
+	fi
+
+	gcloud database-migration connection-profiles delete $profile_name --project $project_id --region $region
+}
+
 gcp_sql_migration_job_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
@@ -3799,6 +3832,138 @@ gcp_sql_migration_job_describe() {
 	fi
 
 	gcloud database-migration migration-jobs describe $job_name --project $project_id --region $region
+}
+
+gcp_sql_migration_job_delete() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id job_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$job_name" ]; then
+		echo No migration job selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs delete $job_name --project $project_id --region $region
+}
+
+gcp_sql_migration_job_start() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id job_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$job_name" ]; then
+		echo No migration job selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs start $job_name --project $project_id --region $region
+}
+
+gcp_sql_migration_job_stop() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id job_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$job_name" ]; then
+		echo No migration job selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs stop $job_name --project $project_id --region $region
+}
+
+gcp_sql_migration_job_promote() {
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local project_id job_name region
+
+  project_id=$(gcloud projects list --format "value(project_id)" | gum filter --limit=1)
+	if [ -z "$project_id" ]; then
+		echo No project selected
+		return
+	fi
+
+	region=$(gcloud compute regions list --format "value(name)" | gum filter --limit=1)
+	if [ -z "$region" ]; then
+		echo No region selected
+		return
+	fi
+
+	job_name=$(gcloud database-migration migration-jobs list --project $project_id --region $region --format "value(name.basename())" | gum filter --limit=1)
+	if [ -z "$job_name" ]; then
+		echo No migration job selected
+		return
+	fi
+
+	gcloud database-migration migration-jobs promote $job_name --project $project_id --region $region
 }
 
 gcp_container_registry_delete_images() {
