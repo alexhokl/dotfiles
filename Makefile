@@ -39,6 +39,9 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/zed/keymap.json $(HOME)/.config/zed/keymap.json;
 	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
 	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
+	ln -snf $(CURDIR)/config/opencode/skills $(HOME)/.config/opencode/skills;
+	mkdir -p $(HOME)/.agents;
+	ln -snf $(CURDIR)/config/opencode/skills $(HOME)/.agents/skills;
 	# if [[ "$$OSTYPE" == "darwin"* ]]; then \
 	# 	ln -snf $(CURDIR)/config/confluence-cli "$(HOME)/Library/Application Support/confluence-cli"; \
 	# else \
