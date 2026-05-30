@@ -1200,6 +1200,13 @@ gcp_sql_export_create() {
 		return
 	fi
 
+	local db_version
+	db_version=$(gcloud sql instances describe "$server_name" --project "$project_id" --format "value(databaseVersion)")
+	local is_mssql=false
+	if [[ "$db_version" == SQLSERVER_* ]]; then
+		is_mssql=true
+	fi
+
 	database_name=$(gcloud sql databases list -i $server_name --project $project_id --format "value(name)" | gum filter --limit=1)
 	if [ -z "$database_name" ]; then
 		echo No database selected
@@ -1212,13 +1219,19 @@ gcp_sql_export_create() {
 		return
 	fi
 
-	file_name=$(gum input --header "Enter the file name" --value="${database_name}-$(date -I).bak")
+	local ext
+	ext=$( [[ "$is_mssql" == true ]] && echo bak || echo sql )
+	file_name=$(gum input --header "Enter the file name" --value="${database_name}-$(date -I).${ext}")
 	if [ -z "$file_name" ]; then
 		echo No file name entered
 		return
 	fi
 
-	gcloud beta sql export bak $server_name $bucket_name$file_name --database=$database_name --project $project_id
+	if [[ "$is_mssql" == true ]]; then
+		gcloud beta sql export bak "$server_name" "${bucket_name}${file_name}" --database="$database_name" --project "$project_id"
+	else
+		gcloud sql export sql "$server_name" "${bucket_name}${file_name}" --database="$database_name" --project "$project_id"
+	fi
 }
 
 gcp_sql_backup_list() {
