@@ -50,6 +50,14 @@ To get a single issue's details:
 jira-cli get issue -i <issue-id> [--description-only] [--no-images]
 ```
 
+Issue descriptions containing `expand` or `nestedExpand` ADF blocks are rendered
+as a bold title followed by two-space-indented content:
+
+```
+**Section Title**
+  Content inside the expand block.
+```
+
 To list issues (supports robust filtering):
 ```bash
 jira-cli list issues --project <KEY> --status "<status>" --assignee <me|unassigned> --type <Bug|Task>
@@ -73,6 +81,30 @@ To add a comment to an issue:
 ```bash
 jira-cli create comment -i <issue-id> -m "<comment body>"
 ```
+
+#### Using the `expand` component in descriptions and comments
+
+To include a collapsible expand section, use the `:::expand` / `:::` fenced
+syntax in any markdown input (description file, `--message`, or the `$EDITOR`
+workflow):
+
+```markdown
+Normal paragraph before the expand.
+
+:::expand Section Title
+This content will be rendered inside the expand block in Jira.
+
+- Bullet lists, headings, code blocks, and other block types are supported.
+:::
+
+Normal paragraph after the expand.
+```
+
+- The title is everything after `:::expand` on the opening line (may be empty).
+- All standard markdown block types (headings, lists, code blocks, blockquotes,
+  tables, inline formatting) are supported inside the body.
+- The closing `:::` is required; if omitted, the body is captured until end of
+  input.
 
 ### 3. Updating Resources
 To update an existing issue or transition its status:
