@@ -60,14 +60,31 @@ as a bold title followed by two-space-indented content:
 
 To list issues (supports robust filtering):
 ```bash
-jira-cli list issues --project <KEY> --status "<status>" --assignee <me|unassigned> --type <Bug|Task>
+jira-cli list issues --project <KEY> --status "<status>" --assignee <me|unassigned> --type <Bug|Task> [--limit <n>]
 jira-cli list issues --jql "<raw JQL query>"
+# JSON output
+jira-cli list issues --project <KEY> --format json
 ```
 
 To list comments of an issue:
 
 ```bash
 jira-cli list comments -i <issue-id>
+# JSON output (body is raw ADF)
+jira-cli list comments -i <issue-id> --format json
+```
+
+To list sprints of a board:
+
+```bash
+jira-cli list boards --type scrum
+jira-cli list sprints --state active --state future -b <board-id>
+```
+To list the earliest future sprints of a board:
+
+```bash
+jira-cli list boards --type scrum
+jira-cli list sprints --state future -b <board-id> --limit 1
 ```
 
 ### 2. Creating Resources
@@ -119,5 +136,15 @@ jira-cli update issue -i <issue-id>
 The CLI also supports full CRUD and list operations for other Jira entities. Discover flags using `--help` if needed:
 - `jira-cli [list|get|create|update|start|close] sprint`
 - `jira-cli [list|get|create|update|delete] status`
-- `jira-cli list projects`, `list boards`, `list users`
+- `jira-cli list projects`, `list boards`, `list users`, `list labels`, `list workflows`, `list custom-fields`, `list sprints`
+- `jira-cli list issue-transitions`, `list issue-types`, `list issue-type-schemes`, `list workflow-schemes`, `list workflow-status`, `list workflow-status-properties`, `list link-types`, `list custom-field-values`
 - `jira-cli bulk-update custom-field-value`, `rename-label`, `delete-label`
+
+Most `list` subcommands accept:
+- `--limit <n>` to cap the number of results returned (default `0` = all)
+- `--format json` to emit JSON instead of the default table output
+
+**Notes on `--format json`:**
+- `list comments`: the `body` field contains the raw Atlassian Document Format (ADF) JSON tree.
+- `list issues`: `--id-only` and `--format json` are mutually exclusive.
+- `list custom-field-values`: `--id-only` / `--value-only` take precedence over `--format json`.
