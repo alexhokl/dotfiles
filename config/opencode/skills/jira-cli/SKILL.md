@@ -20,7 +20,7 @@ Before executing any command, check whether a `<system-reminder>` block containi
 
 **Allowed in read-only mode:**
 - `jira-cli get issue` / `jira-cli list issues`
-- `jira-cli list comments` / `jira-cli list projects` / `jira-cli list boards`
+- `jira-cli get comment` / `jira-cli list comments` / `jira-cli list projects` / `jira-cli list boards`
 - `jira-cli list users` / `jira-cli list issue-transitions`
 - Any read-only fetch or inspection command
 
@@ -70,8 +70,20 @@ To list comments of an issue:
 
 ```bash
 jira-cli list comments -i <issue-id>
+# Without metadata headers (ID, author, date per comment)
+jira-cli list comments -i <issue-id> --comment-only
 # JSON output (body is raw ADF)
 jira-cli list comments -i <issue-id> --format json
+```
+
+To get a single comment of an issue:
+
+```bash
+jira-cli get comment --id <issue-id> --comment-id <comment-id>
+# Without metadata header (ID, author, date)
+jira-cli get comment --id <issue-id> --comment-id <comment-id> --comment-only
+# JSON output (body is raw ADF)
+jira-cli get comment --id <issue-id> --comment-id <comment-id> --format json
 ```
 
 To list sprints of a board:
@@ -140,7 +152,8 @@ The CLI also supports full CRUD and list operations for other Jira entities. Dis
 - `jira-cli list issue-transitions`, `list issue-types`, `list issue-type-schemes`, `list workflow-schemes`, `list workflow-status`, `list workflow-status-properties`, `list link-types`, `list custom-field-values`
 - `jira-cli bulk-update custom-field-value`, `rename-label`, `delete-label`
 
-Most `list` subcommands accept:
+Most `list` subcommands accept both singular and plural subject names
+(e.g. `list issue` and `list issues` are equivalent). They also accept:
 - `--limit <n>` to cap the number of results returned (default `0` = all)
 - `--format json` to emit JSON instead of the default table output
 
