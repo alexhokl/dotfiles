@@ -1,6 +1,6 @@
 ---
 name: expense-tracker-cli
-description: Use when managing expense data (entries, expense/payment types, schedules, currencies, exchange rates, tax rates, reports) via the go-ali-expense-tracker CLI against a running server. Covers creating, listing, updating, deleting, copying entries and importing from CSV.
+description: Use when managing expense data (entries, expense/payment types, schedules, currencies, exchange rates, tax rates, reports, budgets) via the go-ali-expense-tracker CLI against a running server. Covers creating, listing, updating, deleting, copying entries and importing from CSV.
 ---
 
 # expense-tracker-cli
@@ -66,6 +66,7 @@ a plural alias (e.g. `entries`).
 | `list schedule` (`schedules`) | `--format`, `--fields` (`id,start,end,frequency,description,payment_type,expense_type,amount`)                                                                                                 |
 | `list exchange_rate`          | `-c/--currency` (multi), `-d/--date`, `--format`, `--fields` (`id,from,to,rate,valid_from,valid_to`)                                                                                           |
 | `list tax_rate` (`tax_rates`) | `-c/--currency` (multi), `-n/--name`, `-d/--date`, `--format`, `--fields` (`id,name,currency,rate,valid_from,valid_to`)                                                                        |
+| `list budget` (`budgets`)     | `-t/--expense-type`, `-d/--date` (active on this date), `--format text\|json`, `--fields` (`id,expense_type,amount,currency,start_date,end_date`)                                              |
 
 `list entry` JSON fields: `id,date,description,payment_type,expense_type,amount,currency,scheduled`.
 
@@ -77,11 +78,15 @@ a plural alias (e.g. `entries`).
 | `get report monthly`             | `-y/--year`, `-m/--month`                                                                                            |
 | `get report weekly`              | `-y/--year`, `-w/--week`                                                                                             |
 | `get report daily`               | `-y/--year`, `-m/--month`, `-d/--day`                                                                                |
+| `get report expense`             | `--start`, `-e/--end`, `-p/--period week\|month` (default `month`), `-t/--expense-type`* (required); inherits `--format text\|json\|csv` and `-c/--currency`; `--groupby` and `--exclude` are inherited from the parent but ignored by this subcommand |
 | `get bulk_create_csv_template`   | Writes a CSV header + example row to stdout (for `create entries_from_csv`).                                         |
 
 `get report` shares persistent flags: `--format text|json|csv`, `-c/--currency`,
 `--groupby expense|payment`, `--exclude` (comma-separated categories to drop).
 Report flags default year/month/week/day to the current date.
+`get report expense` returns per-period sums (week or month labels) plus
+cross-period statistics (average, median, population standard deviation) for a
+single expense type over an arbitrary date range.
 
 ## Mutating commands (action / edit mode only)
 
@@ -99,6 +104,7 @@ Required flags are marked `*`.
 | `create payment`             | `-n/--name`*                                                                                                                                                                          |
 | `create exchange_rate`       | `--base`*, `--target`*, `-r/--rate`*, `--from`*, `--to`*                                                                                                                              |
 | `create tax_rate`            | `-n/--name`*, `-c/--currency`*, `-r/--rate`* (percent, must be < 100), `--from`*, `--to`*                                                                                             |
+| `create budget`              | `-t/--expense-type`*, `-a/--amount`*, `-c/--currency`*, `--start`*, `--end`* (no `-s` shorthand on `--start`; `-s` is reserved for the global `--service` flag)                       |
 
 Valid `--frequency` values: `daily`, `weekly`, `biweekly`, `monthly`,
 `quarterly`, `yearly`, `weekdays`, `weekends`, `saturday`, `sunday`.
@@ -121,6 +127,7 @@ Valid `--frequency` values: `daily`, `weekly`, `biweekly`, `monthly`,
 | `delete schedule`      | `--id`* (see `--help`)         |
 | `delete exchange_rate` | `--id`* (see `--help`)         |
 | `delete tax_rate`      | `-i/--id`*                     |
+| `delete budget`        | `-i/--id`*                     |
 
 ### `copy`
 
@@ -169,6 +176,38 @@ Generate entries from schedules over a date range:
 go-ali-expense-tracker create scheduled_entries --start 2026-01-01 --end 2026-01-31
 ```
 
+Expense trend report for a single expense type over a date range:
+
+```bash
+# Weekly sums + statistics for "food" over Q1 2026, output as CSV
+go-ali-expense-tracker get report expense \
+  --expense-type food --start 2026-01-01 --end 2026-03-31 \
+  --period week --format csv
+
+# Monthly, JSON output
+go-ali-expense-tracker get report expense \
+  --expense-type transport --start 2026-01-01 --end 2026-12-31 \
+  --period month --format json --currency usd
+```
+
+Manage budgets:
+
+```bash
+# Create a food budget for Q1 2026
+go-ali-expense-tracker create budget \
+  --expense-type food --amount 3000 --currency hkd \
+  --start 2026-01-01 --end 2026-03-31
+
+# List all budgets active on a specific date
+go-ali-expense-tracker list budgets --date 2026-02-15
+
+# List all food budgets as JSON
+go-ali-expense-tracker list budgets --expense-type food --format json
+
+# Delete a budget by ID
+go-ali-expense-tracker delete budget --id 3
+```
+
 ## Gotchas
 
 - Prefer `--format json` (plus `--fields`) when you need to parse output.
@@ -179,4 +218,11 @@ go-ali-expense-tracker create scheduled_entries --start 2026-01-01 --end 2026-01
   in addition to `--id`.
 - `create tax_rate`: `--rate` is a percent and must be `> 0` and `< 100`.
 - Amounts must be greater than zero.
+- `create budget`: `--start` has no `-s` shorthand; `-s` is reserved for the
+  global `--service` flag. Use `--start` (long form only).
+- `create budget` / `list budget`: the server rejects a new budget whose date
+  range overlaps an existing budget for the same expense type. Adjacent ranges
+  (one ends the day before the other starts) are allowed.
+- `get report expense`: `--expense-type` is required; omitting it causes a
+  validation error before any server call is made.
 - When unsure of exact flags, run `go-ali-expense-tracker <command> --help`.
