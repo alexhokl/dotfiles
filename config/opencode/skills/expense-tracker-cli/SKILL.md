@@ -60,7 +60,9 @@ a plural alias (e.g. `entries`).
 
 | Command                       | Notable flags                                                                                                                                                                                 |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `list entry` (`entries`)      | `-d/--date`, `--page` (default 10), `-e/--expense`, `-p/--payment`, `-c/--currency`, `-y/--year`, `-m/--month`, `-w/--week`, `--scheduled`, `--display-currency`, `--format`, `--fields`        |
+| `list entry` (`entries`)      | `-d/--date`, `--limit` (default 10), `--no-limit`, `-e/--expense`, `-p/--payment`, `-c/--currency`, `-y/--year`, `-m/--month`, `-w/--week`, `--scheduled`, `--display-currency`, `--format`, `--fields` |
+| `list income` (`incomes`)     | `-d/--date`, `--limit` (default 10), `--no-limit`, `-t/--income-type`, `-c/--currency`, `-y/--year`, `-m/--month`, `--display-currency`, `--format`, `--fields`                                |
+| `list asset-balance`          | `--asset-id`* (required), `-d/--date`, `-y/--year`, `-m/--month`, `--display-currency`, `--limit` (default 10), `--no-limit`, `--format`, `--fields`                                           |
 | `list expense` (`expenses`)   | `--format`, `--fields` (`name`)                                                                                                                                                                |
 | `list payment` (`payments`)   | `--format`, `--fields` (`name`)                                                                                                                                                                |
 | `list schedule` (`schedules`) | `--format`, `--fields` (`id,start,end,frequency,description,payment_type,expense_type,amount`)                                                                                                 |
@@ -74,11 +76,13 @@ a plural alias (e.g. `entries`).
 
 | Command                          | Notable flags                                                                                                       |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `get entry`                      | `--id`* (required), `--format text\|json`, `--fields` (`id,date,description,payment_type,expense_type,amount,currency,scheduled`) |
 | `get currency`                   | (none) Prints the default currency.                                                                                 |
 | `get report monthly`             | `-y/--year`, `-m/--month`                                                                                            |
 | `get report weekly`              | `-y/--year`, `-w/--week`                                                                                             |
 | `get report daily`               | `-y/--year`, `-m/--month`, `-d/--day`                                                                                |
-| `get report expense`             | `--start`, `-e/--end`, `-p/--period week\|month` (default `month`), `-t/--expense-type`* (required); inherits `--format text\|json\|csv` and `-c/--currency`; `--groupby` and `--exclude` are inherited from the parent but ignored by this subcommand |
+| `get report expense`             | `--start`, `-e/--end`, `-p/--period day\|week\|month\|year` (default `month`), `-t/--expense-type` (optional; omit to show all expense types as a matrix); inherits `--format text\|json\|csv` and `-c/--currency`; output includes `Budget` and `Diff` columns alongside `Sum` |
+| `get report budget`              | `--start` (default today), `-e/--end` (default today); inherits `--format text\|json\|csv`. Outputs a monthly matrix of budget amounts per expense type, sorted by total descending, with a `%` column and `Total` footer row. |
 | `get bulk_create_csv_template`   | Writes a CSV header + example row to stdout (for `create entries_from_csv`).                                         |
 
 `get report` shares persistent flags: `--format text|json|csv`, `-c/--currency`,
@@ -105,6 +109,7 @@ Required flags are marked `*`.
 | `create exchange_rate`       | `--base`*, `--target`*, `-r/--rate`*, `--from`*, `--to`*                                                                                                                              |
 | `create tax_rate`            | `-n/--name`*, `-c/--currency`*, `-r/--rate`* (percent, must be < 100), `--from`*, `--to`*                                                                                             |
 | `create budget`              | `-t/--expense-type`*, `-a/--amount`*, `-c/--currency`*, `--start`*, `--end`* (no `-s` shorthand on `--start`; `-s` is reserved for the global `--service` flag)                       |
+| `create income`              | `-a/--amount`*, `-d/--date`*, `-t/--income-type`* (multi), `-c/--currency`*, `--description`, `--expense-type` (expense type this income offsets, e.g. a refund)                      |
 
 Valid `--frequency` values: `daily`, `weekly`, `biweekly`, `monthly`,
 `quarterly`, `yearly`, `weekdays`, `weekends`, `saturday`, `sunday`.
@@ -114,6 +119,7 @@ Valid `--frequency` values: `daily`, `weekly`, `biweekly`, `monthly`,
 | Command           | Flags                                                                                                                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `update entry`    | `--id`* (multi), then at least one of: `--description`, `-a/--amount`, `-c/--currency`, `-d/--date`, `--add-expense` (multi), `--remove-expense` (multi), `-p/--payment`, `--tax-rate-id` |
+| `update income`   | `--id`* (multi), then at least one of: `--description`, `-a/--amount`, `-c/--currency`, `-d/--date`, `--add-income-type` (multi), `--remove-income-type` (multi), `--expense-type`, `--no-expense-type` (clear expense type; mutually exclusive with `--expense-type`) |
 | `update schedule` | `--id`*, then at least one of: `--name`, `--description`, `-a/--amount`, `-c/--currency`, `--start-date`, `--end-date`, `-f/--frequency`, `--add-expense`, `--remove-expense`, `-p/--payment` |
 | `update currency` | `-c/--code`*                                                                                                                                                                    |
 
@@ -208,14 +214,34 @@ go-ali-expense-tracker list budgets --expense-type food --format json
 go-ali-expense-tracker delete budget --id 3
 ```
 
+Budget report (monthly matrix of actuals vs budgets):
+
+```bash
+# Text output for H1 2026
+go-ali-expense-tracker get report budget --start 2026-01-01 --end 2026-06-30
+
+# CSV output
+go-ali-expense-tracker get report budget --start 2026-01-01 --end 2026-06-30 --format csv
+```
+
+Get a single entry by ID:
+
+```bash
+go-ali-expense-tracker get entry --id 42
+go-ali-expense-tracker get entry --id 42 --format json --fields id,date,amount,currency
+```
+
 ## Gotchas
 
 - Prefer `--format json` (plus `--fields`) when you need to parse output.
 - `list entry`: `--year` is required when `--month` or `--week` is given;
   `--month` and `--week` cannot be combined.
+- `list entry` / `list income` / `list asset-balance`: `--limit` and `--no-limit`
+  are mutually exclusive.
 - `create scheduled_entries`: use `--id` **or** `--name`, never both.
-- `update entry` / `update schedule`: at least one field flag must be supplied
-  in addition to `--id`.
+- `update entry` / `update schedule` / `update income`: at least one field flag
+  must be supplied in addition to `--id`.
+- `update income`: `--expense-type` and `--no-expense-type` are mutually exclusive.
 - `create tax_rate`: `--rate` is a percent and must be `> 0` and `< 100`.
 - Amounts must be greater than zero.
 - `create budget`: `--start` has no `-s` shorthand; `-s` is reserved for the
@@ -223,6 +249,7 @@ go-ali-expense-tracker delete budget --id 3
 - `create budget` / `list budget`: the server rejects a new budget whose date
   range overlaps an existing budget for the same expense type. Adjacent ranges
   (one ends the day before the other starts) are allowed.
-- `get report expense`: `--expense-type` is required; omitting it causes a
-  validation error before any server call is made.
+- `get report expense`: `--expense-type` is optional. When omitted, output is a
+  matrix of all expense types. When specified, output shows per-period rows for
+  that type with budget comparison and statistics.
 - When unsure of exact flags, run `go-ali-expense-tracker <command> --help`.
