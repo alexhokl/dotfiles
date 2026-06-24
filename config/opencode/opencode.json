@@ -3,17 +3,14 @@
   "provider": {
     "ollama": {
       "models": {
-        "devstral-small-2:24b": {
-          "name": "devstral-small-2:24b [Ollama]"
+        "qwen3.6:27b-mlx": {
+          "name": "qwen3.6:27b"
         },
-        "gpt-oss:20b": {
-          "name": "gpt-oss:20b [Ollama]"
+        "gemma4:26b-mlx": {
+          "name": "gemma4:26b"
         },
-        "qwen3-coder:30b": {
-          "name": "qwen3-coder:30b [Ollama]"
-        },
-        "gemma4:26b": {
-          "name": "gemma4:26b [Ollama]"
+        "glm-5.2:cloud": {
+          "name": "glm-5.2"
         }
       },
       "name": "Ollama",
@@ -30,7 +27,7 @@
       },
       "models": {
         "gemma4-12b,gpu,1000000": {
-          "name": "gemma4-12b [Litert LM]"
+          "name": "gemma4-12b"
         }
       }
     },
@@ -42,7 +39,7 @@
       },
       "models": {
         "default_model": {
-          "name": "gemma-4-26B-A4B-it-OptiQ-4bit [MLX]"
+          "name": "gemma-4-26B-A4B-it-OptiQ-4bit"
         }
       }
     }
