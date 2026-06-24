@@ -2404,7 +2404,7 @@ function gcp_service_account_key_create() {
 		return
 	fi
 
-	local project_id sa filename
+	local project_id sa filename key_type
 
   project_id=$(gcloud projects list --format "value(project_id)" | gum filter --no-fuzzy --limit=1)
 	if [ -z "$project_id" ]; then
@@ -2418,13 +2418,20 @@ function gcp_service_account_key_create() {
 		return
 	fi
 
-	filename=$(gum input --header="Enter filename for key" --value="${sa}.json")
+  # select from key type of json or p12
+  key_type=$(gum choose "json" "p12")
+  if [ -z "$key_type" ]; then
+    echo No key type selected
+    return
+  fi
+
+	filename=$(gum input --header="Enter filename for key" --value="${sa}.${key_type}")
 	if [ -z "$filename" ]; then
 		echo No filename entered
 		return
 	fi
 
-	gcloud iam service-accounts keys create --project $project_id --iam-account $sa $filename
+	gcloud iam service-accounts keys create --project $project_id --iam-account $sa --key-file-type $key_type $filename
 }
 
 function gcp_logging_metrics_list() {
