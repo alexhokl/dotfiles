@@ -311,3 +311,53 @@ kgp_containers() {
 kgp_images() {
 	kgp | yq '.spec.containers[] | .image'
 }
+
+## edit image tag of image of a deployment
+kedit() {
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+  local deployment container_name image image_name old_tag new_tag
+
+
+  deployment=$(kubectl get deployments -o custom-columns=NAME:.metadata.name --no-headers | gum filter --limit 1 --header "Select a deployment")
+  if [ -z "$deployment" ]; then
+    echo "No deployment selected"
+    return
+  fi
+
+  container_name=$(kubectl get deployment -o json "$deployment" | jq -r '.spec.template.spec.containers[] | .name' | gum filter --limit 1 --header "Select a container")
+  if [ -z "$container_name" ]; then
+    echo "No container selected"
+    return
+  fi
+
+  image=$(kubectl get deployment -o json "$deployment" | jq -r '.spec.template.spec.containers[] | select(.name=="'"$container_name"'") | .image')
+  if [ -z "$image" ]; then
+    echo "No image selected"
+    return
+  fi
+
+  image_name=$(echo "$image" | awk -F ':' '{print $1}')
+
+  old_tag=$(echo "$image" | awk -F ':' '{print $2}')
+  new_tag=$(gum input --placeholder "New image tag:" --value "$old_tag")
+  if [ -z "$new_tag" ]; then
+    echo "No new tag provided"
+    return
+  fi
+  if [[ ${old_tag} == ${new_tag} ]]; then
+    echo "Old tag and new tag are the same"
+    return
+  fi
+
+  kubectl set image deployment/"$deployment" "$container_name"="$image_name":"$new_tag"
+
+  echo "Deployment $deployment updated: $container_name image changed from $image_name:$old_tag to $image_name:$new_tag"
+}
