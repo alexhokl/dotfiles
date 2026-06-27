@@ -1,6 +1,6 @@
 ---
 name: hkt-date-range
-description: Use when you need the current bi-weekly reporting window in HKT (Hong Kong Time). Provides start_time and end_time as a 14-day range ending on the most recent Monday midnight. Trigger keywords: date range, HKT, biweekly, reporting period, start time, end time, two weeks.
+description: Use when you need the current bi-weekly reporting window in HKT (Hong Kong Time). Provides start_time and end_time as a 14-day range ending on the most recent Monday midnight. Trigger keywords including 'date range', 'HKT', 'biweekly', 'reporting period', 'start time', 'end time', 'two weeks'.
 ---
 
 # HKT Bi-Weekly Date Range
