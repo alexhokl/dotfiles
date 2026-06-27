@@ -11,6 +11,9 @@
         },
         "glm-5.2:cloud": {
           "name": "glm-5.2"
+        },
+        "north-mini-code-1.0:mlx-nvfp4": {
+          "name": "north-mini-code-1.0"
         }
       },
       "name": "Ollama",
