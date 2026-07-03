@@ -4108,3 +4108,39 @@ gcp_sql_delete() {
 
 	gcloud sql instances delete --project $project_id $server_name
 }
+
+gcp_security_cve_list() {
+  if [ -z "$(which gcloud)" ]; then
+    echo "gcloud has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which jq)" ]; then
+    echo "jq has not been installed"
+    return
+  fi
+
+  local org_id severity
+
+  org_id=$(gcloud organizations list --format "value(ID)" | gum filter --limit=1)
+  if [ -z "$org_id" ]; then
+    echo No organization selected
+    return
+  fi
+
+  severity=$(gum choose --header "Select severity" "CRITICAL" "HIGH" "MEDIUM")
+  if [ -z "$severity" ]; then
+    echo No severity selected
+    return
+  fi
+
+  gcloud scc findings list $org_id \
+    --format=json \
+    --filter="state=\"ACTIVE\" AND NOT mute=\"MUTED\" AND severity=\"$severity\"" \
+    --order-by="eventTime desc,createTime desc" \
+    --limit=1000000 | \
+    jq -r '.[] | [.finding.vulnerability.cve.id] | unique | .[]' | sort | uniq
+}
