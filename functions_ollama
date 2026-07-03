@@ -1,0 +1,95 @@
+#!/bin/bash
+
+function ollama_translate() {
+	if [ -z "$(which ollama)" ]; then
+		echo "ollama has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+  if [ -z "$(which grep)" ]; then
+    echo "grep has not been installed"
+    return
+  fi
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return
+  fi
+
+  local model input target_language prompt
+
+  model=$(ollama list | grep -v NAME | awk '{print $1}' | gum filter --limit=1 --header "Select a model...")
+  if [ -z "$model" ]; then
+    echo No model selected
+    return
+  fi
+
+  input=$(gum input --header "Enter the text to translate")
+  if [ -z "$input" ]; then
+    echo No input entered
+    return
+  fi
+
+  target_language=$(printf '%s\n' en ja | gum filter --limit=1 --header "Select a target language...")
+  if [ -z "$target_language" ]; then
+    echo No target language selected
+    return
+  fi
+
+  if [ "$target_language" == "en" ]; then
+    prompt="Translate the following text to English. "
+  elif [ "$target_language" == "ja" ]; then
+    prompt="Translate the following text to Japanese. "
+  fi
+
+  ollama run "$model" "${prompt}${input}"
+}
+
+function ollama_grammar() {
+  if [ -z "$(which ollama)" ]; then
+    echo "ollama has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which grep)" ]; then
+    echo "grep has not been installed"
+    return
+  fi
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return
+  fi
+
+  local model input language prompt
+
+  model=$(ollama list | grep -v NAME | awk '{print $1}' | gum filter --limit=1 --header "Select a model...")
+  if [ -z "$model" ]; then
+    echo No model selected
+    return
+  fi
+
+  language=$(printf '%s\n' en ja | gum filter --limit=1 --header "Select a language...")
+  if [ -z "$language" ]; then
+    echo No language selected
+    return
+  fi
+
+  input=$(gum input --header "Enter the text")
+  if [ -z "$input" ]; then
+    echo No input entered
+    return
+  fi
+
+  if [ "$language" == "en" ]; then
+    prompt="Describe the English grammar of the following text. "
+  elif [ "$language" == "ja" ]; then
+    prompt="Describe the Japanese grammar of the following text. "
+  fi
+
+  ollama run "$model" "${prompt}${input}"
+}
