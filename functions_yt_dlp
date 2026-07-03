@@ -38,3 +38,47 @@ function yt_audio() {
 
 	yt-dlp --extract-audio --audio-format mp3 "$link" -o "$output_filename"
 }
+
+function yt_video() {
+	if [ -z "$(which yt-dlp)" ]; then
+		echo "yt-dlp has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+
+	local link title output_filename
+
+	link=$(gum input --header "Enter the YouTube link")
+	if [ -z "$link" ]; then
+		echo No link entered
+		return
+	fi
+
+	local base query v_value
+	base="${link%%\?*}"
+	query="${link#*\?}"
+	v_value="$(printf '%s' "$query" | tr '&' '\n' | grep '^v=' | head -1 | cut -d= -f2-)"
+	if [ -n "$v_value" ]; then
+		link="${base}?v=${v_value}"
+	fi
+
+	title=$(yt-dlp --print title "$link" 2>/dev/null)
+	if [ -n "$title" ]; then
+		output_filename=$(gum input --header "Enter the output filename" --value="${title}.mp4")
+	else
+		output_filename=$(gum input --header "Enter the output filename" --value="output.mp4")
+	fi
+	if [ -z "$output_filename" ]; then
+		echo No filename entered
+		return
+	fi
+
+	if [[ "$output_filename" != *.* ]]; then
+		output_filename="${output_filename}.mp4"
+	fi
+
+	yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 "$link" -o "$output_filename"
+}

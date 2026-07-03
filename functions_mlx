@@ -28,7 +28,7 @@ function mlx_audio_transcribe() {
 		return
 	fi
 
-	language=$(printf '%s\n' en ja zh zh-yue | gum filter --limit=1 --header "Select a language...")
+	language=$(printf '%s\n' en ja zh yue | gum filter --limit=1 --header "Select a language...")
 	if [ -z "$language" ]; then
 		echo No language selected
 		return
@@ -43,4 +43,91 @@ function mlx_audio_transcribe() {
 	fi
 
 	mlx_audio.stt.generate --model "$model" --audio "$audio_file" --language "$language" --output-path "$output_path"
+}
+
+function mlx_audio_generate() {
+	if [ -z "$(which mlx_audio.tts.generate)" ]; then
+		echo "mlx_audio.tts.generate has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which fd)" ]; then
+		echo "fd has not been installed"
+		return
+	fi
+
+	local text_file model output_path voice language
+
+	text_file=$(fd --absolute-path -e txt -e md . . | gum filter --limit=1 --header "Select a text file...")
+	if [ -z "$text_file" ]; then
+		echo No text file selected
+		return
+	fi
+
+	model=$(gum input --header "Enter the model" --value="mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16")
+  mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit
+	if [ -z "$model" ]; then
+		echo No model entered
+		return
+	fi
+
+	voice=$(printf '%s\n' Aiden Ryan Ono_Anna | gum filter --limit=1 --header "Select a voice...")
+	if [ -z "$voice" ]; then
+		echo No voice selected
+		return
+	fi
+
+	language=$(printf '%s\n' English Cantonese Japanese | gum filter --limit=1 --header "Select a language...")
+	if [ -z "$language" ]; then
+		echo No language selected
+		return
+	fi
+
+	output_path=$(gum input --header "Enter the output directory (the output filename is audio.wav" --value=".")
+	if [ -z "$output_path" ]; then
+		echo No output path entered
+		return
+	fi
+
+	mlx_audio.tts.generate --model "$model" --text "$(cat "$text_file")" --voice "$voice" --lang_code "$language" --output_path "$output_path" --join_audio
+}
+
+function mlx_image_prompt() {
+	if [ -z "$(which mlx_vlm.generate)" ]; then
+		echo "mlx_vlm.generate has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which fd)" ]; then
+		echo "fd has not been installed"
+		return
+	fi
+
+	local image_file model prompt
+
+	image_file=$(fd --absolute-path -e png -e jpg -e jpeg -e webp . . | gum filter --limit=1 --header "Select an image file...")
+	if [ -z "$image_file" ]; then
+		echo No image file selected
+		return
+	fi
+
+	model=$(gum input --header "Enter the model" --value="mlx-community/gemma-4-26B-A4B-it-qat-4bit")
+	if [ -z "$model" ]; then
+		echo No model entered
+		return
+	fi
+
+	prompt=$(gum input --header "Enter the prompt" --value="Repeat words in Japanese")
+	if [ -z "$prompt" ]; then
+		echo No prompt entered
+		return
+	fi
+
+	mlx_vlm.generate --model "$model" --prompt "$prompt" --image "$image_file"
 }
