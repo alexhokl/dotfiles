@@ -1,0 +1,46 @@
+#!/bin/bash
+
+function mlx_audio_transcribe() {
+	if [ -z "$(which mlx_audio.stt.generate)" ]; then
+		echo "mlx_audio.stt.generate has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which fd)" ]; then
+		echo "fd has not been installed"
+		return
+	fi
+
+	local audio_file model language output_path
+
+	audio_file=$(fd --absolute-path -e mp3 -e m4a -e wav -e flac -e ogg . . | gum filter --limit=1 --header "Select an audio file...")
+	if [ -z "$audio_file" ]; then
+		echo No audio file selected
+		return
+	fi
+
+	model=$(gum input --header "Enter the model" --value="mlx-community/whisper-large-v3-turbo-asr-fp16")
+	if [ -z "$model" ]; then
+		echo No model entered
+		return
+	fi
+
+	language=$(printf '%s\n' en ja zh zh-yue | gum filter --limit=1 --header "Select a language...")
+	if [ -z "$language" ]; then
+		echo No language selected
+		return
+	fi
+
+	local basename
+	basename="${audio_file##*/}"
+	output_path=$(gum input --header "Enter the output path" --value="${basename%.*}")
+	if [ -z "$output_path" ]; then
+		echo No output path entered
+		return
+	fi
+
+	mlx_audio.stt.generate --model "$model" --audio "$audio_file" --language "$language" --output-path "$output_path"
+}

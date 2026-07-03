@@ -662,3 +662,5 @@ source ${HOME}/.functions_expense_tracker
 source ${HOME}/.functions_epub
 source ${HOME}/.functions_jira
 source ${HOME}/.functions_confluence
+source ${HOME}/.functions_yt_dlp
+source ${HOME}/.functions_mlx
