@@ -26,7 +26,7 @@ function ollama_translate() {
     return
   fi
 
-  input=$(gum input --header "Enter the text to translate")
+  input=$(gum write --placeholder "Enter the text to translate")
   if [ -z "$input" ]; then
     echo No input entered
     return
@@ -47,7 +47,7 @@ function ollama_translate() {
   ollama run "$model" "${prompt}${input}"
 }
 
-function ollama_grammar() {
+function ollama_grammar_describe() {
   if [ -z "$(which ollama)" ]; then
     echo "ollama has not been installed"
     return
@@ -79,7 +79,7 @@ function ollama_grammar() {
     return
   fi
 
-  input=$(gum input --header "Enter the text")
+  input=$(gum write --placeholder "Enter the text")
   if [ -z "$input" ]; then
     echo No input entered
     return
@@ -89,6 +89,53 @@ function ollama_grammar() {
     prompt="Describe the English grammar of the following text. "
   elif [ "$language" == "ja" ]; then
     prompt="Describe the Japanese grammar of the following text. "
+  fi
+
+  ollama run "$model" "${prompt}${input}"
+}
+
+function ollama_grammar_check() {
+  if [ -z "$(which ollama)" ]; then
+    echo "ollama has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which grep)" ]; then
+    echo "grep has not been installed"
+    return
+  fi
+  if [ -z "$(which awk)" ]; then
+    echo "awk has not been installed"
+    return
+  fi
+
+  local model input language prompt
+
+  model=$(ollama list | grep -v NAME | awk '{print $1}' | gum filter --limit=1 --header "Select a model...")
+  if [ -z "$model" ]; then
+    echo No model selected
+    return
+  fi
+
+  language=$(printf '%s\n' en ja | gum filter --limit=1 --header "Select a language...")
+  if [ -z "$language" ]; then
+    echo No language selected
+    return
+  fi
+
+  input=$(gum write --placeholder "Enter the text")
+  if [ -z "$input" ]; then
+    echo No input entered
+    return
+  fi
+
+  if [ "$language" == "en" ]; then
+    prompt="Check if the English grammar of the following text is correct. "
+  elif [ "$language" == "ja" ]; then
+    prompt="Check if the Japanese grammar of the following text is correct. "
   fi
 
   ollama run "$model" "${prompt}${input}"
