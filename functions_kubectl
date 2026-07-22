@@ -80,6 +80,14 @@ kei() {
 	_ke ingresses.v1.networking.k8s.io $1
 }
 
+keh() {
+  _ke httproutes.gateway.networking.k8s.io $1
+}
+
+keir() {
+  _ke ingressroutes.traefik.io $1
+}
+
 kes() {
 	_ke svc $1
 }
@@ -118,6 +126,14 @@ kgp() {
 
 kgi() {
 	_kyaml ingresses.v1.networking.k8s.io $1
+}
+
+kgh() {
+  _kyaml httproutes.gateway.networking.k8s.io $1
+}
+
+kgir() {
+  _kyaml ingressroutes.traefik.io $1
 }
 
 kgs() {
@@ -208,6 +224,14 @@ krcm() {
 
 kri() {
 	_kr ingresses.v1.networking.k8s.io $1
+}
+
+krh() {
+  _kr httproutes.gateway.networking.k8s.io $1
+}
+
+krir() {
+  _kr ingressroutes.traefik.io $1
 }
 
 krpvc() {
