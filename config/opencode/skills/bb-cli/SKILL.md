@@ -14,10 +14,12 @@ Before executing any command, check whether a `<system-reminder>` block containi
 **Forbidden in read-only mode:**
 - `bb pr` (create pull request)
 - `bb update pr` / `bb approve` / `bb decline` / `bb merge`
+- `bb create branch-permission` / `bb update branch-permission` / `bb delete branch-permission`
 - Any command with side effects on the remote repository
 
 **Allowed in read-only mode:**
 - `bb list pr` / `bb get pr` / `bb list repos` / `bb list workspaces`
+- `bb list branch-permissions` / `bb get branch-permission`
 - Any read-only fetch or inspection command
 
 If the user requests a mutating operation while in read-only mode, respond:
@@ -104,10 +106,42 @@ bb list users -w <workspace-slug>
 
 To check repository permissions:
 ```bash
-bb list repository-permissions -w <workspace-slug> -r <repo-slug>
+bb list repository-permissions -w <workspace-slug> -s <repo-slug>
 ```
 
-### 4. Environments
+### 4. Branch Permissions (Branch Restrictions)
+Manage branch restriction rules (push/force/delete restrictions, merge checks, required approvals, etc.) on a repository. `-w/--workspace` and `-s/--slug` are optional on all of these — if omitted, they are inferred from the git remote of the current directory (like `bb list environment`).
+
+List branch permission rules (rendered as a table):
+```bash
+bb list branch-permissions [-w <workspace-slug>] [-s <repo-slug>] [--kind <kind>] [--pattern <glob>]
+```
+
+Get details of a specific rule:
+```bash
+bb get branch-permission [-w <workspace-slug>] [-s <repo-slug>] --id <rule-id>
+```
+
+Create a new rule (either `--pattern` for a glob match, or `--branch-type` for a branching-model match; only one may be given):
+```bash
+bb create branch-permission [-w <workspace-slug>] [-s <repo-slug>] --kind <kind> (--pattern <glob> | --branch-type <production|development|bugfix|release|feature|hotfix>) [--value <n>] [--users <uuid1,uuid2>] [--groups <slug1,slug2>]
+```
+
+Update an existing rule (only supplied fields are changed):
+```bash
+bb update branch-permission [-w <workspace-slug>] [-s <repo-slug>] --id <rule-id> [--kind <kind>] [--pattern <glob> | --branch-type <type>] [--value <n>] [--users <uuid1,uuid2>] [--groups <slug1,slug2>]
+```
+
+Delete a rule:
+```bash
+bb delete branch-permission [-w <workspace-slug>] [-s <repo-slug>] --id <rule-id>
+```
+
+Valid `--kind` values include: `push`, `force`, `delete`, `restrict_merges`, `require_tasks_to_be_completed`, `require_approvals_to_merge`, `require_default_reviewer_approvals_to_merge`, `require_no_changes_requested`, `require_passing_builds_to_merge`, `require_commits_behind`, `reset_pullrequest_approvals_on_change`, `smart_reset_pullrequest_approvals`, `reset_pullrequest_changes_requested_on_change`, `require_all_dependencies_merged`, `enforce_merge_checks`, `allow_auto_merge_when_builds_pass`.
+
+**Read-only mode note:** `bb list branch-permissions` and `bb get branch-permission` are safe in plan/read-only mode; `create`/`update`/`delete branch-permission` are mutating and forbidden in that mode.
+
+### 5. Environments
 The CLI also supports interacting with environments and variables.
 - `bb list environment`
 - `bb list environment-variable`
