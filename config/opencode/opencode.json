@@ -12,6 +12,9 @@
         "glm-5.2:cloud": {
           "name": "glm-5.2"
         },
+        "kimi-k3:cloud": {
+          "name": "kimi-k3"
+        },
         "north-mini-code-1.0:mlx-nvfp4": {
           "name": "north-mini-code-1.0"
         }
