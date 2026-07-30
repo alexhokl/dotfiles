@@ -139,3 +139,38 @@ function scrape_tofugu_to_epub() {
 
   markdown-to-epub generate -l ja -i "${markdown_file_directory}/temp.md" -t "$title" -a "tofugu.com" -o "${output_filename}"
 }
+
+function scrape_tofugu_to_pdf() {
+  if [ -z "$(which scrape)" ]; then
+    echo "scrape has not been installed"
+    return
+  fi
+  if [ -z "$(which gum)" ]; then
+    echo "gum has not been installed"
+    return
+  fi
+  if [ -z "$(which markdown-to-pdf)" ]; then
+    echo "markdown-to-pdf has not been installed"
+    return
+  fi
+
+  local url suggested_filename output_path markdown_file_directory
+
+  url=$(gum input --placeholder "https://www.tofugu.com/japanese-grammar/...")
+  if [ -z "$url" ]; then
+    echo "No URL entered."
+    return
+  fi
+
+  suggested_filename=$(scrape filename --source tofugu --url "$url")
+  output_path=$(gum input --value "./${suggested_filename}.pdf")
+  if [ -z "$output_path" ]; then
+    echo "No output path entered."
+    return
+  fi
+
+  markdown_file_directory=$(mktemp -d)
+  scrape article --source tofugu --url "$url" > "$markdown_file_directory/temp.md"
+
+  markdown-to-pdf generate -l jp -f -i "$markdown_file_directory/temp.md" -o "$output_path"
+}
