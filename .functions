@@ -665,3 +665,4 @@ source ${HOME}/.functions_confluence
 source ${HOME}/.functions_yt_dlp
 source ${HOME}/.functions_mlx
 source ${HOME}/.functions_ollama
+source ${HOME}/.functions_gpg

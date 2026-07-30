@@ -1,0 +1,94 @@
+#!/bin/bash
+
+gpg_add_subkey() {
+	if [ -z "$(which gpg)" ]; then
+		echo "gpg has not been installed"
+		return 1
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return 1
+	fi
+	if [ -z "$KEYID" ]; then
+		echo "Set the KEYID env variable."
+		return 1
+	fi
+
+  local KEY_TYPE EXPIRATION PASSPHRASE DEFAULT_EXPIRATION KEYFP ENCRYPT_KEY_TYPE SUBKEY_TYPE
+
+  KEY_TYPE=$(gum choose "rsa4096" "ed25519")
+
+  if [ "$KEY_TYPE" = "ed25519" ]; then
+    ENCRYPT_KEY_TYPE="cv25519"
+  else
+    ENCRYPT_KEY_TYPE="$KEY_TYPE"
+  fi
+
+  DEFAULT_EXPIRATION="$(( $(date +%Y) + 1 ))-01-01"
+  while true; do
+    EXPIRATION=$(gum input --placeholder "yyyy-MM-dd" --value "$DEFAULT_EXPIRATION" --prompt "Expiration date: ")
+    if date -j -f "%Y-%m-%d" "$EXPIRATION" >/dev/null 2>&1; then
+      break
+    fi
+    echo "Invalid date format, please use yyyy-MM-dd."
+  done
+
+  PASSPHRASE=$(gum input --password --placeholder "passphrase" --prompt "Master key passphrase: ")
+  KEYFP=$(gpg -k --with-colons "$KEYID" | awk -F: '/^fpr:/ { print $10; exit }')
+
+  if [ -z "$KEYFP" ]; then
+    echo "Could not resolve fingerprint for KEYID: $KEYID"
+    return 1
+  fi
+
+  for SUBKEY in sign encrypt auth ; do \
+    SUBKEY_TYPE="$KEY_TYPE"
+    [ "$SUBKEY" = "encrypt" ] && SUBKEY_TYPE="$ENCRYPT_KEY_TYPE"
+    if ! echo "$PASSPHRASE" | gpg --batch --pinentry-mode=loopback --passphrase-fd 0 \
+        --quick-add-key "$KEYFP" "$SUBKEY_TYPE" "$SUBKEY" "$EXPIRATION"; then
+      echo "Failed to add $SUBKEY subkey"
+      return 1
+    fi
+  done
+}
+
+function gpg_remove_all_key_grips() {
+	if [ -z "$(which gpg)" ]; then
+		echo "gpg has not been installed"
+		return 1
+	fi
+	if [ -z "$(which gpgconf)" ]; then
+		echo "gpgconf has not been installed"
+		return 1
+	fi
+	if [ -z "$KEYID" ]; then
+		echo "Set the KEYID env variable."
+		return 1
+	fi
+
+  local CONFIG_DIR
+  CONFIG_DIR=$(gpgconf --list-dirs homedir)
+  gpg --with-keygrip --list-secret-keys $KEYID \
+    | grep Keygrip \
+    | awk '{print $3}' \
+    | xargs -n 1 -I % rm "$CONFIG_DIR/private-keys-v1.d/%.key" 2> /dev/null
+}
+
+gpg_trust_key() {
+  if [ -z "$(which gpg)" ]; then
+    echo "gpg has not been installed"
+    return 1
+  fi
+  if [ -z "$KEYID" ]; then
+    echo "Set the KEYID env variable."
+    return 1
+  fi
+
+  gpg --command-fd=0 --pinentry-mode=loopback --edit-key "$KEYID" <<EOF
+uid *
+trust
+5
+y
+save
+EOF
+}
