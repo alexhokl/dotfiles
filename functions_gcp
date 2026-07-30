@@ -362,8 +362,8 @@ function gcp_build_logs() {
 }
 
 gcp_bucket_ls() {
-	if [ -z "$(which gsutil)" ]; then
-		echo "gsutil has not been installed"
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
@@ -379,22 +379,22 @@ gcp_bucket_ls() {
 		return
 	fi
 
-	bucket=$(gsutil ls -p $project_id | gum filter --limit=1)
+	bucket=$(gcloud storage ls --project=$project_id | gum filter --limit=1)
 	if [ -z "$bucket" ]; then
 		echo No bucket selected
 		return
 	fi
-	directory=$(gsutil ls -p $project_id $bucket | gum filter --limit=1)
+	directory=$(gcloud storage ls --project=$project_id $bucket | gum filter --limit=1)
 	if [ -z "$directory" ]; then
 		echo No directory selected
 		return
 	fi
-	gsutil ls -p $project_id $directory
+	gcloud storage ls --project=$project_id $directory
 }
 
 gcp_bucket_rm() {
-	if [ -z "$(which gsutil)" ]; then
-		echo "gsutil has not been installed"
+	if [ -z "$(which gcloud)" ]; then
+		echo "gcloud has not been installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
@@ -410,16 +410,16 @@ gcp_bucket_rm() {
 		return
 	fi
 
-	bucket=$(gsutil ls -p $project_id | gum filter --limit=1)
+	bucket=$(gcloud storage ls --project=$project_id | gum filter --limit=1)
 	if [ -z "$bucket" ]; then
 		echo No bucket selected
 		return
 	fi
-	gsutil ls -p $project_id $bucket | gum filter --no-limit --header="Select files..." | xargs -n 1 gsutil -p $project_id rm
+	gcloud storage ls --project=$project_id $bucket | gum filter --no-limit --header="Select files..." | xargs -n 1 gcloud storage rm --project=$project_id
 }
 
 gcp_bucket_role_bindings() {
-	gsutil iam get gs://gravity-production-mssql-backup/ | jq -r '.bindings[] | .role + "," + .members[]'
+	gcloud storage buckets get-iam-policy gs://gravity-production-mssql-backup/ --format=json | jq -r '.bindings[] | .role + "," + .members[]'
 }
 
 gcp_vpc_list() {
@@ -1177,10 +1177,6 @@ gcp_sql_export_create() {
 		echo "gcloud has not been installed"
 		return
 	fi
-	if [ -z "$(which gsutil)" ]; then
-		echo "gsutil has not been installed"
-		return
-	fi
 	if [ -z "$(which gum)" ]; then
 		echo "gum has not been installed"
 		return
@@ -1213,7 +1209,7 @@ gcp_sql_export_create() {
 		return
 	fi
 
-	bucket_name=$(gsutil ls -p $project_id | grep mssql-backup | gum filter --limit=1)
+	bucket_name=$(gcloud storage ls --project=$project_id | grep mssql-backup | gum filter --limit=1)
 	if [ -z "$bucket_name" ]; then
 		echo No bucket selected
 		return
@@ -1237,10 +1233,6 @@ gcp_sql_export_create() {
 gcp_sql_backup_list() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
-		return
-	fi
-	if [ -z "$(which gsutil)" ]; then
-		echo "gsutil has not been installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
@@ -1268,10 +1260,6 @@ gcp_sql_backup_list() {
 gcp_sql_backup_create() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
-		return
-	fi
-	if [ -z "$(which gsutil)" ]; then
-		echo "gsutil has not been installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
