@@ -29,3 +29,12 @@ Session.vim
 .rainbow_oauth
 .nginx/conf.d/*
 config/atuin/atuin-receipt.json
+
+config/opencode/skills/bigquery-ai-ml/
+config/opencode/skills/bigquery-basics/
+config/opencode/skills/gcs-security-assessment/
+config/opencode/skills/detection-engineering-coverage-evaluation/
+config/opencode/skills/gke-platform-security/
+config/opencode/skills/gke-workload-security/
+config/opencode/skills/iam-helper-for-policy-simulator/
+config/opencode/skills/iam-helper-for-privileged-access-management/
