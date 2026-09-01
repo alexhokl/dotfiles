@@ -38,3 +38,5 @@ config/opencode/skills/gke-platform-security/
 config/opencode/skills/gke-workload-security/
 config/opencode/skills/iam-helper-for-policy-simulator/
 config/opencode/skills/iam-helper-for-privileged-access-management/
+config/opencode/skills/grill-me/
+config/opencode/skills/grilling/
