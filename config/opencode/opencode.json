@@ -9,17 +9,26 @@
         "gemma4:26b-mlx": {
           "name": "gemma4:26b"
         },
-        "glm-5.2:cloud": {
-          "name": "glm-5.2"
+        "glm-5.3-flash:cloud": {
+          "name": "glm-5.3-flash"
+        },
+        "glm-5.3:cloud": {
+          "name": "glm-5.3"
         },
         "kimi-k3:cloud": {
           "name": "kimi-k3"
         },
         "deepseek-v4-flash:cloud": {
-          "name": "deepseek-v4-flash"
+          "name": "deepseek-flash"
+        },
+        "deepseek-v4-pro:cloud": {
+          "name": "deepseek-pro"
         },
         "north-mini-code-1.0:mlx-nvfp4": {
           "name": "north-mini-code-1.0"
+        },
+        "granite4.2:30b": {
+          "name": "granite4.2"
         }
       },
       "name": "Ollama",
