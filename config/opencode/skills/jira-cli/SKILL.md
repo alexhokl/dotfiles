@@ -140,9 +140,15 @@ To update an existing issue or transition its status:
 ```bash
 jira-cli update issue -i <issue-id>
 ```
-*Optional flags:* `-t <transition-name>` (to change status), `-a <assignee|none>` (to assign/unassign), `-s "<new summary>"`, `--add-label <label>`, `--delete-label <label>`.
+*Optional flags:* `-t <transition-name>` (to change status), `--type <name|id>` (to change issue type), `-a <assignee|none>` (to assign/unassign), `-s "<new summary>"`, `--parent <key|none>` (to assign/remove parent), `--add-label <label>`, `--delete-label <label>`.
 
 *(Note: Use `jira-cli list issue-transitions` to see available transitions for `-t`)*
+
+To convert a subtask to a standalone task, change its type and remove the parent in one call:
+```bash
+jira-cli update issue -i <issue-id> --type Task --parent none
+```
+*(Use `jira-cli list issue-types` to find available type names/IDs)*
 
 ### 4. Other Available Entities
 The CLI also supports full CRUD and list operations for other Jira entities. Discover flags using `--help` if needed:
