@@ -29,7 +29,10 @@
         },
         "granite4.2:30b": {
           "name": "granite4.2"
-        }
+        },
+        "mistral-large-4:cloud": {
+          "name": "mistral-large-4"
+        },
       },
       "name": "Ollama",
       "npm": "@ai-sdk/openai-compatible",
