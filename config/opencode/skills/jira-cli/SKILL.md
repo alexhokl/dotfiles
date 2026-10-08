@@ -28,16 +28,23 @@ If the user requests a mutating operation while in read-only mode, respond:
 > "I am currently in plan/read-only mode. I can describe what this operation would do, but I will not execute it until plan mode ends."
 
 ## Prerequisites
+
 1. The `jira-cli` binary must be compiled and available in the system's PATH. If not compiled, it can be built from source in the repository using `task install` or `go build -o jira-cli main.go`.
-2. A configuration file must exist at `~/.jira-cli.yml` containing:
+2. A configuration file must exist at `~/Library/Application Support/jira-cli/config.yaml` (the default of the `--config` flag) containing:
    ```yaml
    email: user@testing.com
    api_key: your_jira_api_key
    organization: your_org_name
+   client_id: ...        # OAuth credentials (optional, used by some flows)
+   client_secret: ...
+   port: 8080
    ```
+   The `organization` value is the Atlassian Cloud site subdomain (e.g. `your_org_name` → `https://your_org_name.atlassian.net`).
 
 ## How to use this skill
+
 When the user asks to manage or fetch Jira items, follow these steps:
+
 1. Verify `jira-cli` is accessible by running `jira-cli --help`.
 2. Formulate the appropriate command based on the user's intent using the provided flags below.
 3. Execute the command using the `bash` tool.
@@ -100,7 +107,9 @@ jira-cli list sprints --state future -b <board-id> --limit 1
 ```
 
 ### 2. Creating Resources
+
 To create a new issue:
+
 ```bash
 jira-cli create issue -p <project-key> -t <type> -s "<summary>"
 ```
@@ -140,17 +149,53 @@ To update an existing issue or transition its status:
 ```bash
 jira-cli update issue -i <issue-id>
 ```
-*Optional flags:* `-t <transition-name>` (to change status), `--type <name|id>` (to change issue type), `-a <assignee|none>` (to assign/unassign), `-s "<new summary>"`, `--parent <key|none>` (to assign/remove parent), `--add-label <label>`, `--delete-label <label>`.
+*Optional flags:* `-t <transition-name>` (to change status), `--type <name|id>` (to change issue type), `-a <assignee|none>` (to assign/unassign), `-s "<new summary>"`, `--parent <key|none>` (to assign/remove parent), `--add-label <label>`, `--delete-label <label>`, `--link-issue <key>` + `--link-type <name>` (create an issue link), `--sprint <id|name>` (move to sprint; `none` for backlog), `--no-notify` (suppress notification emails).
 
 *(Note: Use `jira-cli list issue-transitions` to see available transitions for `-t`)*
 
-To convert a subtask to a standalone task, change its type and remove the parent in one call:
+To link two issues (the link is created **outward** from the `-i` issue; e.g. this makes PROJ-456 show "is blocked by" PROJ-123):
 ```bash
-jira-cli update issue -i <issue-id> --type Task --parent none
+jira-cli update issue -i PROJ-123 --link-issue PROJ-456 --link-type Blocks
 ```
-*(Use `jira-cli list issue-types` to find available type names/IDs)*
+*(Use `jira-cli list link-types` to see available type names and their inward/outward descriptions)*
+
+#### ⚠️ Gotcha: `--parent none` is a silent no-op for sub-tasks
+
+The CLI reports success ("Issue X updated") but Jira **ignores** `update.parent.set.none` for `Sub-task` type issues (it only detaches standard issue types). Sub-tasks also cannot exist without a parent.
+
+**Working method to detach + convert a sub-task to a standalone issue** — use the Jira Cloud **Bulk move API** (`POST /rest/api/3/bulk/issues/move`), which is asynchronous (returns a `taskId`, poll `GET /rest/api/3/bulk/queue/<taskId>` until `COMPLETE`):
+```bash
+# Extract credentials (never echo them)
+f="$HOME/Library/Application Support/jira-cli/config.yaml"
+email=$(grep '^email:' "$f" | sed -E 's/^email:[[:space:]]*//' | tr -d '"'"'"'')
+key=$(grep '^api_key:' "$f" | sed -E 's/^api_key:[[:space:]]*//' | tr -d '"'"'"'')
+
+curl -sS -u "$email:$key" -X POST "https://<org>.atlassian.net/rest/api/3/bulk/issues/move" \
+  -H "Content-Type: application/json" \
+  -d '{"sendBulkNotification":false,"targetToSourcesMapping":{"GSC,3,":{"inferClassificationDefaults":true,"inferFieldDefaults":true,"inferStatusDefaults":true,"inferSubtaskTypeDefault":false,"issueIdsOrKeys":["GSC-123"]}}}'
+```
+Where the mapping key is `<targetProjectKey>,<targetIssueTypeId>,<optionalTargetParentKey>` (trailing comma required when no parent; e.g. `GSC,3,` = project GSC, type ID 3 = Task, no parent). The `infer*Defaults: true` flags preserve status/fields without manual mappings. Up to 1000 issues per request; moving sub-task → standard type in the same project removes the parent automatically and preserves status, assignee, sprint, etc.
+
+Verify afterwards:
+```bash
+jira-cli list issues --jql "parent = <PARENT-KEY>"      # expect: No issues found
+jira-cli get issue -i <child-key>                        # check type/status
+```
+
+*(The legacy `POST /rest/api/2/issue/<key>/movesubtasks` endpoint returns 404 on Cloud. Also note `jira-cli get issue` does not support `--format json`.)*
+
+#### ⚠️ Gotcha: `--sprint "name"` may fail to resolve
+
+The CLI resolves sprint names only via boards it can list for the project; sprints on other boards won't be found. **Workaround: use the sprint ID directly** (`--sprint 2322`). To find a sprint's ID when other issues already have it, query the Sprint field (`customfield_10007`) via the REST API:
+```bash
+curl -sS -u "$email:$key" -G "https://<org>.atlassian.net/rest/api/3/search/jql" \
+  --data-urlencode 'jql="Sprint" = "<sprint name>"' \
+  --data-urlencode "fields=customfield_10007" --data-urlencode "maxResults=1"
+```
+The sprint object in the response contains `id`, `boardId`, and `state`. (Note: `/rest/api/3/search` was removed — use `/rest/api/3/search/jql` with `--data-urlencode` for JQL.)
 
 ### 4. Other Available Entities
+
 The CLI also supports full CRUD and list operations for other Jira entities. Discover flags using `--help` if needed:
 - `jira-cli [list|get|create|update|start|close] sprint`
 - `jira-cli [list|get|create|update|delete] status`
@@ -167,3 +212,10 @@ Most `list` subcommands accept both singular and plural subject names
 - `list comments`: the `body` field contains the raw Atlassian Document Format (ADF) JSON tree.
 - `list issues`: `--id-only` and `--format json` are mutually exclusive.
 - `list custom-field-values`: `--id-only` / `--value-only` take precedence over `--format json`.
+
+## Direct REST API fallback
+
+When the CLI lacks an operation (e.g. bulk move, sub-task conversion), call the Jira Cloud REST API directly with Basic Auth (email + API key) against `https://<organization>.atlassian.net/rest/api/3/...`. Extract credentials from the config file (see the bulk-move example above) and never print them. Useful endpoints:
+- `POST /rest/api/3/bulk/issues/move` — bulk move / sub-task conversion (async)
+- `GET /rest/api/3/bulk/queue/<taskId>` — poll async task status
+- `GET /rest/api/3/myself` — quick auth check
