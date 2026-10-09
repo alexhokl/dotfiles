@@ -40,8 +40,12 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/yamlfmt $(HOME)/.config/yamlfmt;
 	ln -snf $(CURDIR)/config/fontconfig $(HOME)/.config/fontconfig;
 	ln -snf $(CURDIR)/config/opencode/opencode.json $(HOME)/.config/opencode/opencode.json;
-	mkdir -p $(HOME)/.agents;
-	ln -snf $(CURDIR)/config/opencode/skills $(HOME)/.agents/skills;
+	mkdir -p $(HOME)/.agents/skills $(HOME)/.claude/skills;
+	for dir in $(shell find $(CURDIR)/config/opencode/skills -mindepth 1 -maxdepth 1 -type d); do \
+		f=$$(basename $$dir); \
+		ln -sfn $$dir $(HOME)/.agents/skills/$$f; \
+		ln -sfn $$dir $(HOME)/.claude/skills/$$f; \
+	done;
 	# if [[ "$$OSTYPE" == "darwin"* ]]; then \
 	# 	ln -snf $(CURDIR)/config/confluence-cli "$(HOME)/Library/Application Support/confluence-cli"; \
 	# else \
