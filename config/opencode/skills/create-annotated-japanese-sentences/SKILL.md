@@ -82,13 +82,13 @@ Use `data[0].japanese[].reading` for readings and `data[0].senses[].parts_of_spe
 
 1. Read `template.html` from this skill's directory.
 2. Replace both `{{TITLE}}` occurrences with a title (input file name, or "Annotated Japanese Sentences").
-3. Replace `<!-- SENTENCES -->` with one block per sentence, using this exact structure (escape `"` and `<` inside `title` attributes):
+3. Replace `<!-- SENTENCES -->` with one block per sentence, using this exact structure. In the full sentence, wrap each word (except particles, numbers/counters and Latin-script terms) in `<a href="https://jisho.org/word/<url-encoded dictionary form>" target="_blank" rel="noopener">`, using the same lemma as the Dictionary form column:
 
 ```html
 <section class="sentence">
 	<h2>Sentence 1</h2>
 	<div class="full">
-		<span class="pronoun" title="Pronoun — I"><ruby>私<rt>わたし</rt></ruby></span><span class="particle" title="Particle — topic marker">は</span><span class="noun" title="Noun — every morning"><ruby>毎<rt>まい</rt>朝<rt>あさ</rt></ruby></span><span class="noun" title="Noun — coffee">コーヒー</span><span class="particle" title="Particle — object marker">を</span><span class="verb" title="Verb — to drink (polite non-past)"><ruby>飲<rt>の</rt></ruby>みます</span>。
+		<span class="pronoun"><a href="https://jisho.org/word/%E7%A7%81" target="_blank" rel="noopener"><ruby>私<rt>わたし</rt></ruby></a></span><span class="particle">は</span><span class="noun"><a href="https://jisho.org/word/%E6%AF%8E%E6%9C%9D" target="_blank" rel="noopener"><ruby>毎<rt>まい</rt>朝<rt>あさ</rt></ruby></a></span><span class="noun"><a href="https://jisho.org/word/%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC" target="_blank" rel="noopener">コーヒー</a></span><span class="particle">を</span><span class="verb"><a href="https://jisho.org/word/%E9%A3%B2%E3%82%80" target="_blank" rel="noopener"><ruby>飲<rt>の</rt></ruby>みます</a></span>。
 	</div>
 	<table>
 		<thead>

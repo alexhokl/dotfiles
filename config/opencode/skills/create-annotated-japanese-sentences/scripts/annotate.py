@@ -7,6 +7,7 @@ import html
 import os
 import re
 import sys
+from urllib.parse import quote
 
 DEFAULT_FURIGANA = os.environ.get(
     'JMDICT_FURIGANA', os.path.expanduser('~/.local/share/nvim/JmdictFurigana.txt'))
@@ -381,8 +382,11 @@ def render_sentence(n, s, translation):
         b = build_token(tk)
         cls, name = TYPES[b['typ']]
         rb = ruby(b['segs'])
-        title = name + (' — ' + b['gloss'] if b['gloss'] else '')
-        full.append('<span class="%s" title="%s">%s</span>' % (cls, esc(title), rb))
+        if b['typ'] in ('p', 'ct') or re.fullmatch(r'[A-Za-z0-9 ./&-]+', b['surf']):
+            full.append('<span class="%s">%s</span>' % (cls, rb))
+        else:
+            full.append('<span class="%s"><a href="https://jisho.org/word/%s" target="_blank" rel="noopener">%s</a></span>'
+                        % (cls, quote(b['lemma']), rb))
         unc = ' class="uncertain"' if not b['gloss'] and b['typ'] in ('n', 'v', 'ai', 'an', 'av') else ''
         rows.append(
             '<tr><td class="word %s">%s</td><td>%s</td><td>%s</td><td%s><span class="badge %s">%s</span></td><td>%s</td></tr>'

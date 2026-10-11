@@ -29,3 +29,5 @@ Session.vim
 .rainbow_oauth
 .nginx/conf.d/*
 config/atuin/atuin-receipt.json
+
+**/__pycache__/
