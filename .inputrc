@@ -36,9 +36,9 @@ set input-meta on
 set output-meta on
 set convert-meta off
 
-# Use Alt/Meta + Delete to delete the preceding word
+# Use Alt/Meta + Delete to delete the following word
 "\e[3;3~": kill-word
 
-## enable Alt-arrows
-"\e[1;5D": backward-word ### Alt left
-"\e[1;5C": forward-word ### Alt right
+## enable Ctrl-arrows
+"\e[1;5D": backward-word ### Ctrl left
+"\e[1;5C": forward-word ### Ctrl right
