@@ -14,23 +14,23 @@ bin: ## Installs the bin directory files.
 .PHONY: dotfiles
 dotfiles: ## Installs the dotfiles.
 	# add aliases for dotfiles
-	for file in $(shell find $(CURDIR) -name ".*" -not -name ".gitignore" -not -name ".git" -not -name "config" -not -name ".github" -not -name ".*.swp" -not -name ".gnupg"); do \
+	for file in $(shell find $(CURDIR) -mindepth 1 -maxdepth 1 -name ".*" -not -name ".gitignore" -not -name ".git" -not -name "config" -not -name ".github" -not -name ".*.swp" -not -name ".gnupg" -not -name ".claude" -not -name ".DS_Store"); do \
 		f=$$(basename $$file); \
 		ln -sfn $$file $(HOME)/$$f; \
 	done;
-	for file in $(shell find $(CURDIR) -name "functions_*"); do \
+	for file in $(shell find $(CURDIR) -maxdepth 1 -name "functions_*"); do \
 		f=$$(basename $$file); \
 		ln -sfn $$file $(HOME)/.$$f; \
 	done;
 	gpg --list-keys || true;
 	mkdir -p $(HOME)/.gnupg
-	for file in $(shell find $(CURDIR)/.gnupg); do \
+	for file in $(shell find $(CURDIR)/.gnupg -mindepth 1 -type f); do \
 		f=$$(basename $$file); \
 		ln -sfn $$file $(HOME)/.gnupg/$$f; \
 	done; \
 	ln -fn $(CURDIR)/gitignore $(HOME)/.gitignore;
 	# git update-index --skip-worktree $(CURDIR)/.gitconfig;
-	mkdir -p $(HOME)/.config;
+	mkdir -p $(HOME)/.config $(HOME)/.config/zed $(HOME)/.config/opencode $(HOME)/.claude;
 	ln -snf $(CURDIR)/.i3 $(HOME)/.config/sway;
 	ln -snf $(CURDIR)/config/kdiff3rc $(HOME)/.config/kdiff3rc;
 	ln -snf $(CURDIR)/config/atuin $(HOME)/.config/atuin;
@@ -57,7 +57,7 @@ dotfiles: ## Installs the dotfiles.
 	ln -snf $(CURDIR)/config/bash_completion.d $(HOME)/.config/bash_completion.d;
 	ln -snf $(CURDIR)/.fonts $(HOME)/.local/share/fonts;
 	ln -snf $(CURDIR)/.bash_profile $(HOME)/.profile;
-	if [ -f /usr/local/bin/pinentry ]; then \
+	if [ ! -e /usr/local/bin/pinentry ]; then \
 		if [[ "$$OSTYPE" == "darwin"* ]]; then \
 			sudo ln -snf /opt/homebrew/bin/pinentry-mac /usr/local/bin/pinentry; \
 		else \
