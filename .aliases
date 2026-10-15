@@ -149,10 +149,10 @@ command -v md5sum > /dev/null || alias md5sum="md5"
 command -v sha1sum > /dev/null || alias sha1sum="shasum"
 
 # Trim new lines and copy to clipboard
-alias c="tr -d '\\n' | xclip -selection clipboard"
+alias c="tr -d '\\n' | pbcopy"
 
 # URL-encode strings
-alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
+alias urlencode='python3 -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
 
 # Merge PDF files
 # Usage: `mergepdf -o output.pdf input{1,2,3}.pdf`
@@ -180,7 +180,7 @@ alias afk="i3lock -c 000000"
 alias hosts='sudo vim /etc/hosts'
 
 # copy working directory
-alias cwd='pwd | tr -d "\r\n" | xclip -selection clipboard'
+alias cwd='pwd | tr -d "\r\n" | pbcopy'
 
 # copy file interactive
 alias cp='cp -i'
@@ -192,7 +192,7 @@ alias mv='mv -i'
 alias untar='tar xvf'
 
 # Pipe my public key to my clipboard.
-alias pubkey="more ~/.ssh/id_ed25519.pub | xclip -selection clipboard | echo '=> Public key copied to pasteboard.'"
+alias pubkey="pbcopy < ~/.ssh/id_ed25519.pub && echo '=> Public key copied to pasteboard.'"
 
 # Pipe my private key to my clipboard.
 alias prikey="more ~/.ssh/id_ed25519 | xclip -selection clipboard | echo '=> Private key copied to pasteboard.'"
