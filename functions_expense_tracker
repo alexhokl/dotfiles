@@ -42,10 +42,15 @@ function expense_create() {
     return 1
   fi
 
+  local expense_args=() expense
+  while IFS= read -r expense; do
+    expense_args+=(--expense "$expense")
+  done <<< "$selected_expense_types"
+
   go-ali-expense-tracker create entry \
     --date "$entry_date" \
     --description "$description" \
     --amount "$amount" \
-    $(for expense in $selected_expense_types; do echo --expense "\"$expense\" "; done) \
+    "${expense_args[@]}" \
     --payment "$selected_payment_type"
 }

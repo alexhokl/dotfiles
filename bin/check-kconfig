@@ -123,11 +123,12 @@ check_flags() {
 check_flag_not_set() {
 	if is_set_in_kernel "$1"; then
 		wrap_bad "CONFIG_$1" 'enabled'
+		EXITCODE=1
 	elif is_set_as_module "$1"; then
 		wrap_bad "CONFIG_$1" 'enabled (as module)'
+		EXITCODE=1
 	else
 		wrap_good "CONFIG_$1" 'not enabled'
-		EXITCODE=1
 	fi
 }
 check_flags_not_set() {

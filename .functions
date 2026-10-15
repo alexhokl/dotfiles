@@ -338,10 +338,10 @@ dbs() {
 isup() {
 	local uri=$1
 
-	if curl -s --head  --request GET "$uri" | grep "200 OK" > /dev/null ; then
-		notify-send --urgency=critical "$uri is down"
-	else
+	if curl -s -o /dev/null -w '%{http_code}' "$uri" | grep -q '^200$'; then
 		notify-send --urgency=low "$uri is up"
+	else
+		notify-send --urgency=critical "$uri is down"
 	fi
 }
 
@@ -668,3 +668,4 @@ source ${HOME}/.functions_yt_dlp
 source ${HOME}/.functions_mlx
 source ${HOME}/.functions_ollama
 source ${HOME}/.functions_gpg
+source ${HOME}/.functions_step

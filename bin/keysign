@@ -56,19 +56,19 @@ for i in "$@"; do
 				read -r yn
 				case "$yn" in
 					"N"|"n"|"No"|"no")
-						echo -e "\\033[40m\\033[0;36m  Exiting... \\033[0m"; echo;
-						exit 0
+						echo -e "\\033[40m\\033[0;36m  Done with this key... \\033[0m"; echo;
+						continue
 						;;
 					* )
 						echo -e "\\033[40m\\033[0;36m  Saving as ${HOME}/${i}-signed.asc... \\033[0m"; echo;
 						gpg -a -o "${HOME}/${i}-signed.asc" --export "$i"
-						exit 0
+						continue
 						;;
 				esac
 				;;
 			* )
 				gpg --send-key "$i"; echo;
-				exit 0
+				continue
 				;;
 		esac
 	fi

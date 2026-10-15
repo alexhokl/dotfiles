@@ -1,8 +1,8 @@
 #!/bin/bash
 
 function step_certificate_inspect() {
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
+	if [ -z "$(which step)" ] || [ -z "$(which jq)" ]; then
+		echo "step and jq must be installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
@@ -18,12 +18,12 @@ function step_certificate_inspect() {
 		return
 	fi
 
-	step certificate inspect https://$domain
+	step certificate inspect "https://$domain"
 }
 
 function step_certificate_validity() {
-	if [ -z "$(which jq)" ]; then
-		echo "jq has not been installed"
+	if [ -z "$(which step)" ] || [ -z "$(which jq)" ]; then
+		echo "step and jq must be installed"
 		return
 	fi
 	if [ -z "$(which gum)" ]; then
@@ -39,6 +39,6 @@ function step_certificate_validity() {
 		return
 	fi
 
-	step certificate inspect https://$domain | jq -r '.validity'
+	step certificate inspect "https://$domain" | jq -r '.validity'
 }
 

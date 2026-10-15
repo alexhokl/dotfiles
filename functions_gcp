@@ -537,7 +537,7 @@ gcp_role_permissions_list() {
 
 	local role_name
 
-	role_name=$(gcp_roles_available | awk -F, '{print $1}')
+	role_name=$(gcp_role_list | awk -F, '{print $1}')
 	if [ -z "$role_name" ]; then
 		echo No role selected
 		return
@@ -1861,6 +1861,10 @@ gcp_kub_authorized_ip_addresses_update() {
 	fi
 
 	rule_name=$(gcloud container clusters describe $server_name --project $project_id --format json | jq -r '.masterAuthorizedNetworksConfig.cidrBlocks[] | .displayName' | gum filter --limit=1)
+	if [ -z "$rule_name" ]; then
+		echo No rule selected
+		return
+	fi
 
 	new_ip_address=$(gum input --header "Enter the new IP address")
 	if [ -z "$new_ip_address" ]; then
@@ -1915,6 +1919,10 @@ gcp_kub_authorized_ip_addresses_delete() {
 	fi
 
 	rule_name=$(gcloud container clusters describe $server_name --project $project_id --format json | jq -r '.masterAuthorizedNetworksConfig.cidrBlocks[] | .displayName' | gum filter --limit=1)
+	if [ -z "$rule_name" ]; then
+		echo No rule selected
+		return
+	fi
 
 	temp_file=$(mktemp)
 	gcloud container clusters describe $server_name --project $project_id --format json | jq -r "[.masterAuthorizedNetworksConfig.cidrBlocks[] | select(.displayName!=\"$rule_name\") | { displayName:.displayName, cidrBlock:.cidrBlock }]" > $temp_file
@@ -2033,7 +2041,7 @@ function gcp_all_ip_list() {
 function gcp_forwarding_rules() {
 	if [ -z "$(which gcloud)" ]; then
 		echo "gcloud has not been installed"
-		retur
+		return
 	fi
 	if [ -z "$(which jq)" ]; then
 		echo "jq has not been installed"
@@ -2689,9 +2697,9 @@ gcp_logging_read() {
 		return
 	fi
 
-  json_filter=${2}
+  json_filter=${1:-.}
 
-	gcloud logging read --project $project_id --format json --limit 10 "$(cat $query_file)" | jq ${json_filter}
+	gcloud logging read --project $project_id --format json --limit 10 "$(cat $query_file)" | jq "${json_filter}"
 }
 
 gcp_dashboard_list() {
@@ -3158,7 +3166,7 @@ gcp_secrets_update_single_line() {
 		return
 	fi
 
-	echo "$new_password" | gcloud secrets versions access latest --secret $secret_name --project $project_id --data-file=-
+	printf "%s" "$new_password" | gcloud secrets versions add $secret_name --project $project_id --data-file=-
 }
 
 gcp_secrets_diff() {
@@ -3655,7 +3663,7 @@ gcp_scc_cve_list() {
 		"CVSS Score:       " + (.vulnerability.cve.cvssv3.baseScore | tostring),
 		"Attack Vector:    " + .vulnerability.cve.cvssv3.attackVector,
 		"",
-		"Offending Package:" + .vulnerability.offendingPackage.packageName // .vulnerability.offending_package.package_name // "",
+		"Offending Package:" + (.vulnerability.offendingPackage.packageName // .vulnerability.offending_package.package_name // ""),
 		"  Version:        " + (.vulnerability.offendingPackage.packageVersion // .vulnerability.offending_package.package_version // ""),
 		"  Type:           " + (.vulnerability.offendingPackage.packageType // .vulnerability.offending_package.package_type // ""),
 		"Fixed Package:    " + (.vulnerability.fixedPackage.packageName // .vulnerability.fixed_package.package_name // ""),
@@ -4045,7 +4053,7 @@ gcp_container_registry_delete_images() {
 		return
 	fi
 
-	repository_name=$(gcloud container images list-gcr-usage --project common-gsc-asdf-1 --format json | jq -r '.[] | .repository' | gum filter --limit=1)
+	repository_name=$(gcloud container images list-gcr-usage --project $project_id --format json | jq -r '.[] | .repository' | gum filter --limit=1)
 	if [ "${repository_name}" == "" ]; then
 		echo No repository selected
 		return

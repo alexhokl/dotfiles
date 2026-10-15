@@ -45,6 +45,7 @@ main(){
 	if [[ -d "$guest_dir" ]]; then
 		>&2 echo "Guest directory: $guest_dir already exists."
 		>&2 echo "Exiting..."
+		exit 1
 	fi
 
 	# create a fully-allocated (non-sparse) raw file

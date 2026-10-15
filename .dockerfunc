@@ -1188,8 +1188,8 @@ virtualbox(){
 		${DOCKER_REPO_PREFIX}/virtualbox
 }
 virt_viewer(){
-	if [[ -n "$(which virt_viewer)" ]]; then
-		"$(which virt_viewer)" "$@"
+	if [[ -n "$(which virt-viewer)" ]]; then
+		"$(which virt-viewer)" "$@"
 	else
 		relies_on kvm
 

@@ -64,13 +64,14 @@ gh_toc_md2html() {
 		gh_file_md="$tmpfile"
 	fi
 
-	URL=https://api.github.com/markdown/raw
+	local auth_header=()
 	if [[ -n "$GITHUB_TOKEN" ]]; then
-		URL="${URL}?access_token=${GITHUB_TOKEN}"
+		auth_header=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
 	fi
 	curl -s --user-agent "$gh_user_agent" \
 		--data-binary @"$gh_file_md" -H "Content-Type:text/plain" \
-		"$URL"
+		"${auth_header[@]}" \
+		https://api.github.com/markdown/raw
 
 	# cleanup
 	rm -rf "$tmpfile"

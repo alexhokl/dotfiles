@@ -171,7 +171,7 @@ az_nsg_rule_add() {
 	for g in $(cat $selected_group_file); do
 		rg=$(echo $g | awk -F ',' '{ print $1 }')
 		nsg=$(echo $g | awk -F ',' '{ print $2 }')
-		lowest_priority=$(az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .priority' | sort | tail -n 1)
+		lowest_priority=$(az network nsg rule list -g $rg --nsg-name $nsg | jq -r '.[] | .priority' | sort -n | tail -n 1)
 		priority=$((lowest_priority + 1))
 	done
 
@@ -380,7 +380,7 @@ az_storage_account_update_ip() {
 	for a in $(cat $selected_account_file); do
 		rg=$(echo $a | awk -F ',' '{ print $1 }')
 		account=$(echo $a | awk -F ',' '{ print $2 }')
-		az storage account network-rule list -g $rg -n $account | jq -r ".ipRules | .[] | select(.ipAddressOrRange==\"$1\") | .ipAddressOrRange" | xargs -I {} echo $a,{} >> $rule_file
+		az storage account network-rule list -g $rg -n $account | jq -r ".ipRules | .[] | select(.ipAddressOrRange==\"$old_ip\") | .ipAddressOrRange" | xargs -I {} echo $a,{} >> $rule_file
 	done
 	cat $rule_file | gum filter --no-limit > $selected_rule_file
 	for r in $(cat $selected_rule_file); do

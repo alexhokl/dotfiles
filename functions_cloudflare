@@ -76,7 +76,6 @@ cloudflare_show_dns_record() {
 	selected_name=$(mktemp)
 	zone_id=$(cloudflare_list_zones| gum filter --placeholder "Select a zone" | awk -F ',' '{ print $1 }')
 	xh -b -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records | jq '[.result[] | {name:.name, type:.type, value:.content}]' > $records
-	echo "${records}"
 	cat $records | jq -r '.[] | .name' | gum filter > $selected_name
 	for name in $(cat $selected_name); do
 		cat $records | jq -r ".[] | select(.name == \"$name\") | .name + \", \" + .type + \", \" + .value"
@@ -115,7 +114,7 @@ cloudflare_add_dns_record() {
 		echo "No DNS record value specified"
 		return
 	fi
-	xh post -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records type=$type name=$name content=$value ttl:=3600 proxied:=false
+	xh post -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records type=$type name="$name" content="$value" ttl:=3600 proxied:=false
 }
 
 cloudflare_delete_dns_records() {
@@ -171,6 +170,6 @@ cloudflare_update_dns_record_value() {
 	value=$(gum input --placeholder "Enter new DNS record value" --value "$(cat $selected_records | awk -F ',' '{ print $3 }')")
 	for record in $(cat $selected_records); do
 		record_id=$(echo $record | awk -F ',' '{ print $4 }')
-		xh patch -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id content=$value
+		xh patch -A bearer -a $CLOUDFLARE_TOKEN https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id content="$value"
 	done
 }
