@@ -1,6 +1,11 @@
 #!/bin/bash
 # handler.sh - OpenCode Skill Logic
 
+if ! command -v gdate >/dev/null 2>&1; then
+    echo '{"status": "error", "message": "gdate (GNU coreutils) is not installed"}'
+    exit 1
+fi
+
 # Force HKT timezone
 export TZ="Asia/Hong_Kong"
 

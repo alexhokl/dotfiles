@@ -68,7 +68,7 @@ one turn at a time. Run the bundled BM25 ranker ONCE to surface the most relevan
 single command:
 
 ```bash
-./.claude/skills/effective-liteparse/scripts/search.py /tmp/doc.txt -q "materiality assessment priority topics" -k 8 -e 5
+~/.claude/skills/liteparse/scripts/search.py /tmp/doc.txt -q "materiality assessment priority topics" -k 8 -e 5
 ```
 
 `-k` = number of matches, `-e` = lines of context around each (so the window comes back inline — no

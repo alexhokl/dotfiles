@@ -8,27 +8,35 @@
 # ///
 import argparse
 import asyncio
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import aiofiles
 import bm25s
 
 
+# number of lines searched together as one BM25 corpus
+CHUNK_LINES = 1000
+
+
 class LineRecord(TypedDict):
-    index: int
+    index: int  # position within the chunk
+    lineno: int  # line number within the file
     content: str
 
 
-def _chunk(content: str) -> list[LineRecord]:
-    return [{"index": i, "content": c} for (i, c) in enumerate(content.splitlines())]
+def _chunk(lines: list[str], offset: int) -> list[LineRecord]:
+    return [
+        {"index": i, "lineno": offset + i, "content": c} for (i, c) in enumerate(lines)
+    ]
 
 
 def _expand(corpus: list[LineRecord], match: LineRecord, n: int) -> str:
     idx = match["index"]
     start = max(0, idx - n)
     end = min(len(corpus) - 1, idx + n)
-    return f"Lines {start} - {end}\n\n\n" + "\n".join(
-        [c["content"] for c in corpus[start : end + 1]]
+    return (
+        f"Lines {corpus[start]['lineno']} - {corpus[end]['lineno']}\n\n\n"
+        + "\n".join([c["content"] for c in corpus[start : end + 1]])
     )
 
 
@@ -39,47 +47,49 @@ def _retrieve(
     retriever = bm25s.BM25(corpus=corpus)
     retriever.index(corpus_tokens)
     query_tokens = bm25s.tokenize(query)
-    docs, scores = retriever.retrieve(query_tokens, k=top_k or 10)
+    k = min(top_k or 10, len(corpus))
+    docs, scores = retriever.retrieve(query_tokens, k=k)
 
     results: list[tuple[str, float]] = []
     for doc, score in zip(docs[0].tolist(), scores[0].tolist()):
-        window = _expand(corpus, doc, expand) if expand > 0 else [doc]
-        results.append((cast(str, window), score))
+        if expand > 0:
+            window = _expand(corpus, doc, expand)
+        else:
+            window = f"Line {doc['lineno']}\n\n\n{doc['content']}"
+        results.append((window, score))
     return results
 
 
 def _chunk_and_retrieve(
-    content: str, query: str, top_k: int | None, expand_n: int
+    lines: list[str], offset: int, query: str, top_k: int | None, expand_n: int
 ) -> list[tuple[str, float]]:
-    corpus = _chunk(content)
+    corpus = _chunk(lines, offset)
     return _retrieve(corpus, query, top_k, expand_n)
 
 
 async def process_chunk(
-    content: bytes, query: str, top_k: int | None, expand_n: int
+    lines: list[str], offset: int, query: str, top_k: int | None, expand_n: int
 ) -> list[tuple[str, float]]:
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        None,
-        _chunk_and_retrieve,
-        content.decode("utf-8"),
-        query,
-        top_k,
-        expand_n,
+        None, _chunk_and_retrieve, lines, offset, query, top_k, expand_n
     )
 
 
 async def read_and_process(
     file_path: str, query: str, top_k: int | None, expand_n: int | None
 ) -> list[str]:
+    async with aiofiles.open(file_path, "r", encoding="utf-8", errors="replace") as f:
+        lines = (await f.read()).splitlines()
+    expand = 5 if expand_n is None else expand_n
+
     tasks: list[asyncio.Task[list[tuple[str, float]]]] = []
     async with asyncio.TaskGroup() as tg:
-        async with aiofiles.open(file_path, "rb") as f:
-            # read 64KB chunks
-            while chunk := await f.read(65536):
-                tasks.append(
-                    tg.create_task(process_chunk(chunk, query, top_k, expand_n or 5))
-                )
+        for offset in range(0, len(lines), CHUNK_LINES):
+            chunk = lines[offset : offset + CHUNK_LINES]
+            tasks.append(
+                tg.create_task(process_chunk(chunk, offset, query, top_k, expand))
+            )
     results = [task.result() for task in tasks]
     flattened = [r for result in results for r in result if r[1] >= 0.5]
     flattened.sort(key=lambda x: x[1], reverse=True)

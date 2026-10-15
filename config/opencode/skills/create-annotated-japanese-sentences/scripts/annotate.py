@@ -80,6 +80,7 @@ tagger = None
 jam = None
 JF = {}
 _gloss_cache = {}
+_gloss_warned = False
 
 
 def init(furigana_file):
@@ -89,7 +90,7 @@ def init(furigana_file):
     from jamdict import Jamdict
 
     # A stub `unidic` package can shadow unidic-lite; point MeCab at unidic-lite explicitly.
-    tagger = fugashi.GenericTagger('-r /dev/null -d ' + unidic_lite.DICDIR)
+    tagger = fugashi.GenericTagger('-r /dev/null -d "{}"'.format(unidic_lite.DICDIR))
     jam = Jamdict()
     if os.path.exists(furigana_file):
         with open(furigana_file, encoding='utf-8-sig') as f:
@@ -209,7 +210,11 @@ def gloss(lemma, typ):
             pick = ents[0].senses[0]
         if pick:
             res = '; '.join(str(g) for g in pick.gloss[:3])
-    except Exception:
+    except Exception as e:
+        global _gloss_warned
+        if not _gloss_warned:
+            print(f'warning: dictionary lookup failed ({e}); glosses will be empty', file=sys.stderr)
+            _gloss_warned = True
         res = ''
     _gloss_cache[key] = res
     return res
