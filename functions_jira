@@ -271,26 +271,31 @@ function jira_create() {
   issue_type_cap=$(echo "$issue_type" | awk '{print toupper(substr($0,1,1)) tolower(substr($0,2))}')
 
   # Build the command
-  local cmd="jira-cli create issue -p $project -t $issue_type_cap -s \"$summary\" --custom-field \"Client=$client\" --custom-field \"Project Team=$project_team\" --custom-field \"Feature=$feature\""
+  local cmd=(jira-cli create issue -p "$project" -t "$issue_type_cap" -s "$summary" --custom-field "Client=$client" --custom-field "Project Team=$project_team" --custom-field "Feature=$feature")
   if [ -n "$selected_sprint" ]; then
-    cmd="$cmd --sprint \"$selected_sprint\""
+    cmd+=(--sprint "$selected_sprint")
   fi
 
   # Add optional fields
   if [ -n "$description_file" ]; then
-    cmd="$cmd --description-file \"$description_file\""
+    cmd+=(--description-file "$description_file")
   fi
 
   if [ -n "$logging_link" ]; then
-    cmd="$cmd --custom-field \"Link to GCP Logging=$logging_link\""
+    cmd+=(--custom-field "Link to GCP Logging=$logging_link")
   fi
 
   if [ -n "$labels_arg" ]; then
-    cmd="$cmd --labels \"$labels_arg\""
+    cmd+=(--labels "$labels_arg")
   fi
 
-  echo "$cmd"
-  eval "$cmd"
+  echo "${cmd[*]}"
+  if ! "${cmd[@]}"; then
+    if [ -n "$description_file" ]; then
+      echo "Issue creation failed; description kept at $description_file"
+    fi
+    return 1
+  fi
 
   # Clean up the temporary description file if it was created
   if [ -n "$description_file" ] && [ -f "$description_file" ]; then

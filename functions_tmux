@@ -5,7 +5,7 @@ tmux_attach() {
 	id=$(tmux list-sessions | gum filter --limit=1 | awk -F ':' '{print $1}')
 	if [ -z "$id" ]; then
 		echo "No tmux session selected"
-		exit 1
+		return 1
 	fi
 	tmux attach -t $id
 }

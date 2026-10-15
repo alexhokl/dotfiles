@@ -249,7 +249,7 @@ kexec() {
 _ke() {
 	local entry obj ns
 	if [ -n "$2" ]; then
-		kubectl edit $1 $obj
+		kubectl edit $1 "$2"
 	else
 		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
 		ns=$(echo $entry | awk -F '/' '{ print $1 }')
@@ -262,7 +262,7 @@ _ke() {
 _kd() {
 	local entry obj ns
 	if [ -n "$2" ]; then
-		kubectl describe $1 $obj
+		kubectl describe $1 "$2"
 	else
 		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
 		ns=$(echo $entry | awk -F '/' '{ print $1 }')
@@ -275,7 +275,7 @@ _kd() {
 _kr() {
 	local entry obj ns
 	if [ -n "$2" ]; then
-		kubectl delete $1 $obj
+		kubectl delete $1 "$2"
 	else
 		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf-tmux -m)
 		for e in $entry; do
@@ -290,7 +290,7 @@ _kr() {
 _kyaml() {
 	local entry obj ns
 	if [ -n "$2" ]; then
-		kubectl get $1 $obj -o yaml | kubectl neat -f -
+		kubectl get $1 "$2" -o yaml | kubectl neat -f -
 	else
 		entry=$(kubectl get "$1" -A -o wide --no-headers | awk '{ print $1 "/" $2 }' | fzf)
 		ns=$(echo $entry | awk -F '/' '{ print $1 }')

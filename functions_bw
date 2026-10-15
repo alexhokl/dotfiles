@@ -56,7 +56,6 @@ bw_items_get() {
 	fi
 
 	local selection selected_id list selected_item
-	list=$(mktemp)
 
 	selection=$(bw_folders_list | gum table -c "Folder,ID" -w "50,50")
 	if [ -z "${selection}" ]; then
@@ -66,12 +65,12 @@ bw_items_get() {
 
 	selected_id=$(echo "${selection}" | awk -F, '{print $2}')
 
-	bw list items --folderid $selected_id > $list
-	selected_item=$(cat $list | jq -r '.[] | .name' | sort | gum filter)
+	list=$(bw list items --folderid "$selected_id")
+	selected_item=$(echo "$list" | jq -r '.[] | .name' | sort | gum filter)
 	if [ -z "${selected_item}" ]; then
 		echo "No item selected"
 		return
 	fi
 
-	cat $list | jq -r ".[] | select(.name == \"${selected_item}\")"
+	echo "$list" | jq -r --arg name "$selected_item" '.[] | select(.name == $name)'
 }
