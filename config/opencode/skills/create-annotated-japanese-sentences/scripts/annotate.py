@@ -120,15 +120,20 @@ def furi(s, r):
         return [(s, None)]
     r = hira(r)
     spec = JF.get((s, r))
+    segs = {}
     if spec:
-        segs = {}
-        for part in spec.split(';'):
-            a, rd = part.split(':', 1)
-            if '-' in a:
-                x, y = map(int, a.split('-'))
-            else:
-                x = y = int(a)
-            segs[x] = (y, rd)
+        try:
+            for part in spec.split(';'):
+                a, rd = part.split(':', 1)
+                if '-' in a:
+                    x, y = map(int, a.split('-'))
+                else:
+                    x = y = int(a)
+                segs[x] = (y, rd)
+        except ValueError:
+            # malformed JmdictFurigana entry; fall back to regex alignment below
+            segs = {}
+    if segs:
         out = []
         i = 0
         while i < len(s):
