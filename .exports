@@ -37,20 +37,11 @@ export TODOTXT_DEFAULT_ACTION=ls
 #export GDK_DPI_SCALE=0.5
 #export QT_DEVICE_PIXEL_RATIO=1.5
 
-# turn on go vendoring experiment
-export GO15VENDOREXPERIMENT=1
-
 export DOCKER_CONTENT_TRUST=1
 export DOCKER_BUILDKIT=1
 
-# if it's an ssh session export GPG_TTY
-if [[ -n "$SSH_CLIENT" ]] || [[ -n "$SSH_TTY" ]]; then
-	GPG_TTY=$(tty)
-	export GPG_TTY
-fi
-
 # set xdg data dirs for dmenu to source
-export XDG_DATA_DIRS=/usr/share/
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
 export FZF_DEFAULT_COMMAND="rg --ignore --files"
 

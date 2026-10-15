@@ -100,7 +100,7 @@ fi
 if [[ -d /etc/bash_completion.d/ ]]; then
 	for file in /etc/bash_completion.d/* ; do
 		# shellcheck source=/dev/null
-		source "$file"
+		[[ -f "$file" ]] && source "$file"
 	done
 fi
 
@@ -202,7 +202,7 @@ if [[ -r "$file" ]] && [[ -f "$file" ]]; then
 fi
 unset file
 
-complete -C /usr/local/bin/vault vault
+[ -x /usr/local/bin/vault ] && complete -C /usr/local/bin/vault vault
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 [ -f /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
@@ -212,8 +212,8 @@ complete -C /usr/local/bin/vault vault
 [ -f $HOME/.config/flutter/bash_completion ] && source $HOME/.config/flutter/bash_completion
 [ -f $HOME/.local/share/atuin/atuin.bash ] && source $HOME/.local/share/atuin/atuin.bash
 
-if command -v brew &> /dev/null; then
-	source "$(brew --prefix)/share/google-cloud-sdk/path.bash.inc"
+if [ -f /opt/homebrew/share/google-cloud-sdk/path.bash.inc ]; then
+	source /opt/homebrew/share/google-cloud-sdk/path.bash.inc
 fi
 
 complete -F __start_kubectl kub
@@ -224,23 +224,22 @@ complete -F __start_kubectl kub
 # source bash-preexec
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
 
-eval "$(atuin init bash --disable-up-arrow)"
+if hash atuin 2>/dev/null; then
+	eval "$(atuin init bash --disable-up-arrow)"
+fi
 
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+if hash pyenv 2>/dev/null; then
+	eval "$(pyenv init -)"
+fi
 
 # initialize rbenv
-eval "$(rbenv init - --no-rehash bash)"
+if hash rbenv 2>/dev/null; then
+	eval "$(rbenv init - --no-rehash bash)"
+fi
 
-
-# BEGIN opam configuration
-# This is useful if you're using opam as it adds:
-#   - the correct directories to the PATH
-#   - auto-completion for the opam binary
-# This section can be safely removed at any time if needed.
-test -r '/Users/alex/.opam/opam-init/init.sh' && . '/Users/alex/.opam/opam-init/init.sh' > /dev/null 2> /dev/null || true
-# END opam configuration
+# opam is initialised in ~/.path
 
 # OpenClaw Completion
 # source <(openclaw completion --shell bash)

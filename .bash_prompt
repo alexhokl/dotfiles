@@ -8,7 +8,7 @@
 if [[ $COLORTERM = gnome-* && $TERM = xterm ]] && infocmp gnome-256color >/dev/null 2>&1; then
 	export TERM='gnome-256color';
 elif infocmp rxvt-unicode-256color >/dev/null 2>&1; then
-	export TERM='rxvt-unicode';
+	export TERM='rxvt-unicode-256color';
 elif infocmp xterm-256color >/dev/null 2>&1; then
 	export TERM='xterm-256color';
 fi;
@@ -18,9 +18,8 @@ prompt_kube() {
 	if [ ! -f $HOME/.kube/config ]; then
 		return;
 	fi
-	contextName=$(kubectl config view -o=jsonpath='{.current-context}')
-	namespace="$(kubectl config view -o=jsonpath="{.contexts[?(@.name==\"${contextName}\")].context.namespace}")" \
-     || exit_err "error getting current namespace"
+	local contextName namespace
+	IFS='|' read -r contextName namespace < <(kubectl config view --minify -o=jsonpath='{.current-context}|{..namespace}' 2>/dev/null)
 	if [[ -z "${namespace}" ]]; then namespace=default; fi;
 	echo -e "${1}${white}(kube:${violet}${contextName}${white}/${blue}${namespace}${white})";
 }
