@@ -5,36 +5,37 @@
   "hooks": {
     "PostToolUse": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
-            "command": "atuin hook claude-code",
-            "type": "command"
+            "type": "command",
+            "command": "atuin hook claude-code"
           }
-        ],
-        "matcher": "Bash"
+        ]
       }
     ],
     "PostToolUseFailure": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
-            "command": "atuin hook claude-code",
-            "type": "command"
+            "type": "command",
+            "command": "atuin hook claude-code"
           }
-        ],
-        "matcher": "Bash"
+        ]
       }
     ],
     "PreToolUse": [
       {
+        "matcher": "Bash",
         "hooks": [
           {
-            "command": "atuin hook claude-code",
-            "type": "command"
+            "type": "command",
+            "command": "atuin hook claude-code"
           }
-        ],
-        "matcher": "Bash"
+        ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {}
 }
