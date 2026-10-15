@@ -168,3 +168,5 @@ linux-*.deb
 temp.md
 temp.sql
 cookies.txt
+
+**/.claude/settings.local.json
