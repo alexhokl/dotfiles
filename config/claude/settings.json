@@ -2,6 +2,7 @@
   "permissions": {
     "defaultMode": "plan"
   },
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
