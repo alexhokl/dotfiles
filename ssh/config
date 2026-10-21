@@ -2,7 +2,7 @@ Host github.com
   User git
   IdentityAgent /Users/alex/.gnupg/S.gpg-agent.ssh
 
-Host bitbucket.org
+Host ssh.bitbucket.org
   User git
   IdentityAgent /Users/alex/.gnupg/S.gpg-agent.ssh
 

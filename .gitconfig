@@ -210,10 +210,11 @@
 	insteadOf = "github:"
 	insteadOf = "git://github.com/"
 
-[url "git@bitbucket.org:"]
+[url "git@ssh.bitbucket.org:"]
 
 	insteadOf = "https://bitbucket.org/"
 	insteadOf = "git://bitbucket.org/"
+	insteadOf = "git@bitbucket.org:"
 
 # [url "git://github.com/"]
 #

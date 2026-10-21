@@ -243,6 +243,9 @@ repo() {
 	# Fix git://github.com URLS
 	base_url=${base_url//git:\/\/github\.com/https:\/\/github\.com\/}
 
+	# Fix git@ssh.bitbucket.org: URLs
+	base_url=${base_url//git@ssh.bitbucket.org:/https:\/\/bitbucket\.org\/}
+
 	# Fix git@bitbucket.org: URLs
 	base_url=${base_url//git@bitbucket.org:/https:\/\/bitbucket\.org\/}
 
