@@ -140,3 +140,71 @@ function ollama_grammar_check() {
 
   ollama run "$model" "${prompt}${input}"
 }
+
+# Speaks text with an Ollama speech model (e.g. phonon), choosing the model and
+# voice interactively.
+#
+# Usage:
+#   ollama_speak <file>
+#   some_command | ollama_speak
+#
+# Dependencies: ollama (0.40.9+, Apple Silicon), gum, grep, awk
+function ollama_speak() {
+	if [ -z "$(which ollama)" ]; then
+		echo "ollama has not been installed"
+		return
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return
+	fi
+	if [ -z "$(which grep)" ]; then
+		echo "grep has not been installed"
+		return
+	fi
+	if [ -z "$(which awk)" ]; then
+		echo "awk has not been installed"
+		return
+	fi
+
+	local file models model voice
+	file="$1"
+
+	if [ -n "$file" ] && [ ! -f "$file" ]; then
+		echo "File $file does not exist"
+		return
+	fi
+	if [ -z "$file" ] && [ -t 0 ]; then
+		echo "Usage: ollama_speak <file>"
+		echo "       some_command | ollama_speak"
+		return
+	fi
+
+	models=$(ollama list | grep -v NAME | awk '{print $1}' | while read -r m; do
+		if ollama show "$m" 2>/dev/null | awk '/^  Capabilities/{f=1;next} /^  [A-Z]/{f=0} f' | grep -qw speech; then
+			echo "$m"
+		fi
+	done)
+	if [ -z "$models" ]; then
+		echo "No speech model installed (e.g. ollama pull phonon)"
+		return
+	fi
+
+	model=$(echo "$models" | gum filter --limit=1 --header "Select a speech model...")
+	if [ -z "$model" ]; then
+		echo No model selected
+		return
+	fi
+
+	voice=$(ollama show "$model" | awk '/^  Voices/{f=1;next} /^  [A-Z]/{f=0} f && NF {sub(/^ +/,""); sub(/ +$/,""); print}' | gum filter --limit=1 --header "Select a voice...")
+	if [ -z "$voice" ]; then
+		echo No voice selected
+		return
+	fi
+
+	if [ -n "$file" ]; then
+		ollama run --voice "$voice" "$model" < "$file"
+	else
+		ollama run --voice "$voice" "$model"
+	fi
+}
