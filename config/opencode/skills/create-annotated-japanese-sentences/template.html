@@ -6,25 +6,32 @@
 <title>{{TITLE}}</title>
 <style>
 	:root {
-		--noun: #1f5fbf;
-		--verb: #c62828;
-		--adjective: #2e7d32;
-		--adverb: #00838f;
-		--particle: #757575;
-		--auxiliary: #ef6c00;
-		--pronoun: #6a1b9a;
-		--conjunction: #6d4c41;
-		--counter: #00796b;
-		--interjection: #d81b60;
-		--affix: #9e8600;
-		--adnominal: #7cb342;
+		color-scheme: dark;
+		--bg: #121212;
+		--fg: #e0e0e0;
+		--muted: #9e9e9e;
+		--border: #333;
+		--header-bg: #1e1e1e;
+		--noun: #64a0ff;
+		--verb: #ef5350;
+		--adjective: #66bb6a;
+		--adverb: #26c6da;
+		--particle: #9e9e9e;
+		--auxiliary: #ffa726;
+		--pronoun: #ba68c8;
+		--conjunction: #a1887f;
+		--counter: #4db6ac;
+		--interjection: #f06292;
+		--affix: #d4c03a;
+		--adnominal: #aed581;
 	}
 	body {
 		font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
 		max-width: 960px;
 		margin: 2rem auto;
 		padding: 0 1rem;
-		color: #222;
+		background: var(--bg);
+		color: var(--fg);
 		line-height: 1.5;
 	}
 	h1 { font-size: 1.6rem; }
@@ -33,7 +40,7 @@
 		flex-wrap: wrap;
 		gap: 0.5rem;
 		padding: 0.75rem;
-		border: 1px solid #ddd;
+		border: 1px solid var(--border);
 		border-radius: 6px;
 		margin-bottom: 2rem;
 	}
@@ -41,31 +48,31 @@
 		display: inline-block;
 		padding: 0.1rem 0.5rem;
 		border-radius: 4px;
-		color: #fff;
+		color: var(--bg);
 		font-size: 0.8rem;
 		white-space: nowrap;
 	}
 	.sentence {
-		border-top: 2px solid #eee;
+		border-top: 2px solid var(--border);
 		padding-top: 1rem;
 		margin-bottom: 2.5rem;
 		page-break-inside: avoid;
 	}
-	h2.section { font-size: 1.3rem; color: #333; border-bottom: 3px solid #1f5fbf; padding-bottom: 0.3rem; margin-top: 3rem; }
-	.sentence h2 { font-size: 1rem; color: #888; margin: 0 0 0.5rem; }
+	h2.section { font-size: 1.3rem; color: var(--fg); border-bottom: 3px solid var(--noun); padding-bottom: 0.3rem; margin-top: 3rem; }
+	.sentence h2 { font-size: 1rem; color: var(--muted); margin: 0 0 0.5rem; }
 	.full {
 		font-size: 2rem;
 		line-height: 2.6;
 		margin: 0.5rem 0 1rem;
 	}
 	.full a { color: inherit; text-decoration: none; cursor: pointer; border-bottom: 2px solid currentColor; margin: 0 1px; }
-	ruby rt { font-size: 0.45em; color: #555; }
+	ruby rt { font-size: 0.45em; color: #aaa; }
 	table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
-	th, td { border: 1px solid #ddd; padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; }
-	th { background: #f6f6f6; }
+	th, td { border: 1px solid var(--border); padding: 0.35rem 0.6rem; text-align: left; vertical-align: middle; }
+	th { background: var(--header-bg); }
 	td.word { font-size: 1.3rem; }
 	.translation { font-style: italic; margin-top: 1rem; font-size: 1.1rem; }
-	.uncertain::after { content: " ?"; color: #c00; font-weight: bold; }
+	.uncertain::after { content: " ?"; color: #ff6b6b; font-weight: bold; }
 
 	.noun { color: var(--noun); }
 	.verb { color: var(--verb); }
@@ -80,21 +87,21 @@
 	.affix { color: var(--affix); }
 	.adnominal { color: var(--adnominal); }
 
-	.badge.noun { background: var(--noun); color: #fff; }
-	.badge.verb { background: var(--verb); color: #fff; }
-	.badge.adjective { background: var(--adjective); color: #fff; }
-	.badge.adverb { background: var(--adverb); color: #fff; }
-	.badge.particle { background: var(--particle); color: #fff; }
-	.badge.auxiliary { background: var(--auxiliary); color: #fff; }
-	.badge.pronoun { background: var(--pronoun); color: #fff; }
-	.badge.conjunction { background: var(--conjunction); color: #fff; }
-	.badge.counter { background: var(--counter); color: #fff; }
-	.badge.interjection { background: var(--interjection); color: #fff; }
-	.badge.affix { background: var(--affix); color: #fff; }
-	.badge.adnominal { background: var(--adnominal); color: #fff; }
+	.badge.noun { background: var(--noun); color: var(--bg); }
+	.badge.verb { background: var(--verb); color: var(--bg); }
+	.badge.adjective { background: var(--adjective); color: var(--bg); }
+	.badge.adverb { background: var(--adverb); color: var(--bg); }
+	.badge.particle { background: var(--particle); color: var(--bg); }
+	.badge.auxiliary { background: var(--auxiliary); color: var(--bg); }
+	.badge.pronoun { background: var(--pronoun); color: var(--bg); }
+	.badge.conjunction { background: var(--conjunction); color: var(--bg); }
+	.badge.counter { background: var(--counter); color: var(--bg); }
+	.badge.interjection { background: var(--interjection); color: var(--bg); }
+	.badge.affix { background: var(--affix); color: var(--bg); }
+	.badge.adnominal { background: var(--adnominal); color: var(--bg); }
 
 	@media print {
-		body { margin: 0; max-width: none; }
+		body { margin: 0; max-width: none; background: #fff; color: #222; }
 		.full span[title] { border-bottom: none; }
 	}
 </style>
