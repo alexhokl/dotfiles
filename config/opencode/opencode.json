@@ -32,6 +32,9 @@
         },
         "mistral-large-4:cloud": {
           "name": "mistral-large-4"
+        },
+        "flint:40b": {
+          "name": "flint"
         }
       },
       "name": "Ollama",
