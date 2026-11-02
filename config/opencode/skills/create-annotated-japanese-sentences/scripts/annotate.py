@@ -1,6 +1,6 @@
-"""Bulk annotator: MeCab (fugashi+unidic-lite) tokens, JmdictFurigana furigana, jamdict glosses.
+"""Bulk annotator: MeCab (fugashi+unidic-lite) tokens, JmdictFurigana furigana, local JMdict glosses.
 
-Usage: python3 annotate.py FILE.md... [--out-dir DIR] [--trans-dir DIR] [--furigana-file PATH]
+Usage: python3 annotate.py FILE.md... [--out-dir DIR] [--trans-dir DIR] [--furigana-file PATH] [--dict-file PATH]
 """
 import argparse
 import html
@@ -9,8 +9,8 @@ import re
 import sys
 from urllib.parse import quote
 
-DEFAULT_FURIGANA = os.environ.get(
-    'JMDICT_FURIGANA', os.path.expanduser('~/.local/share/nvim/JmdictFurigana.txt'))
+import jmdict
+from jmdict import furi, has_kanji, hira
 
 TYPES = {
     'n': ('noun', 'Noun'),
@@ -27,13 +27,12 @@ TYPES = {
     'i': ('interjection', 'Interjection'),
     'af': ('affix', 'Affix'),
 }
+# JMdict part-of-speech code prefixes (e.g. `v` matches v1, v5k, vs-i).
 POSKEY = {
-    'n': ['noun'], 'v': ['verb'], 'ai': ['adjective (keiyoushi)'], 'an': ['adjectival nouns', 'noun'],
-    'pn': ['pre-noun'], 'av': ['adverb'], 'c': ['conjunction'], 'i': ['interjection'],
-    'pr': ['pronoun'], 'af': ['suffix', 'prefix', 'counter'],
+    'n': ['n'], 'v': ['v'], 'ai': ['adj-i'], 'an': ['adj-na', 'n'],
+    'pn': ['adj-pn'], 'av': ['adv'], 'c': ['conj'], 'i': ['int'],
+    'pr': ['pn'], 'af': ['suf', 'pref', 'ctr'],
 }
-
-KANJI = r'\u4e00-\u9fff々〆ヶ'
 
 ABS_AUX = {'ます', 'た', 'ない', 'ぬ', 'れる', 'られる', 'せる', 'させる', 'たい', 'う', 'よう'}
 AUXLABEL = {
@@ -77,81 +76,27 @@ XGLOSS = {
 PARTICLE_ROMA = {'は': 'は (wa)', 'を': 'を (o)', 'へ': 'へ (e)'}
 
 tagger = None
-jam = None
-JF = {}
+jdx = None
 _gloss_cache = {}
-_gloss_warned = False
 
 
-def init(furigana_file):
-    global tagger, jam
+def init(furigana_file, dict_file):
+    global tagger, jdx
     import fugashi
     import unidic_lite
-    from jamdict import Jamdict
 
     # A stub `unidic` package can shadow unidic-lite; point MeCab at unidic-lite explicitly.
     tagger = fugashi.GenericTagger('-r /dev/null -d "{}"'.format(unidic_lite.DICDIR))
-    jam = Jamdict()
-    if os.path.exists(furigana_file):
-        with open(furigana_file, encoding='utf-8-sig') as f:
-            for ln in f:
-                p = ln.rstrip('\n').split('|')
-                if len(p) == 3:
-                    JF[(p[0], p[1])] = p[2]
-    else:
+    try:
+        jdx = jmdict.load_index(dict_file)
+    except jmdict.DictionaryMissing as e:
+        print('warning: %s; glosses will be empty' % e, file=sys.stderr)
+    if not jmdict.load_furigana(furigana_file):
         print('warning: %s not found; using regex furigana alignment only' % furigana_file, file=sys.stderr)
-
-
-def hira(s):
-    return ''.join(chr(ord(c) - 0x60) if 'ァ' <= c <= 'ン' else c for c in s)
-
-
-def has_kanji(s):
-    return re.search('[%s]' % KANJI, s) is not None
 
 
 def esc(s):
     return html.escape(s, quote=True)
-
-
-def furi(s, r):
-    """Return a list of (text, reading or None) segments."""
-    if not has_kanji(s) or not r or r == '*':
-        return [(s, None)]
-    r = hira(r)
-    spec = JF.get((s, r))
-    segs = {}
-    if spec:
-        try:
-            for part in spec.split(';'):
-                a, rd = part.split(':', 1)
-                if '-' in a:
-                    x, y = map(int, a.split('-'))
-                else:
-                    x = y = int(a)
-                segs[x] = (y, rd)
-        except ValueError:
-            # malformed JmdictFurigana entry; fall back to regex alignment below
-            segs = {}
-    if segs:
-        out = []
-        i = 0
-        while i < len(s):
-            if i in segs:
-                y, rd = segs[i]
-                out.append((s[i:y + 1], rd))
-                i = y + 1
-            else:
-                out.append((s[i], None))
-                i += 1
-        return out
-    parts = re.findall('[%s]+|[^%s]+' % (KANJI, KANJI), s)
-    pat = ''.join('(.+?)' if has_kanji(p) else re.escape(hira(p)) for p in parts)
-    m = re.fullmatch(pat, r)
-    if m:
-        gs = list(m.groups())
-        return [(p, gs.pop(0)) if has_kanji(p) else (p, None) for p in parts]
-    return [(s, r)]
 
 
 def ruby(segs):
@@ -195,32 +140,21 @@ def gloss(lemma, typ):
     if key in _gloss_cache:
         return _gloss_cache[key]
     res = ''
-    try:
-        ents = list(jam.lookup(lemma, lookup_chars=False).entries)
-
-        def exact(e):
-            return any(k.text == lemma for k in e.kanji_forms) or any(k.text == lemma for k in e.kana_forms)
-
-        ents = [e for e in ents if exact(e)] or ents
+    if jdx:
+        ents, _ = jmdict.find_entries(jdx, lemma)
         keys = POSKEY.get(typ, [])
         pick = None
         for e in ents:
-            for s in e.senses:
-                if any(any(k in p for k in keys) for p in s.pos):
+            for s in e['senses']:
+                if any(p.startswith(k) for k in keys for p in s['pos']):
                     pick = s
                     break
             if pick:
                 break
-        if not pick and ents and ents[0].senses:
-            pick = ents[0].senses[0]
+        if not pick and ents:
+            pick = ents[0]['senses'][0]
         if pick:
-            res = '; '.join(str(g) for g in pick.gloss[:3])
-    except Exception as e:
-        global _gloss_warned
-        if not _gloss_warned:
-            print(f'warning: dictionary lookup failed ({e}); glosses will be empty', file=sys.stderr)
-            _gloss_warned = True
-        res = ''
+            res = '; '.join(pick['gloss'][:3])
     _gloss_cache[key] = res
     return res
 
@@ -415,11 +349,13 @@ def main():
     ap.add_argument('--trans-dir', default='.annotate',
                     help='working dir: writes sent/<name>.txt, reads trans/<name>.txt '
                          '(lines "N<TAB>English") (default: .annotate)')
-    ap.add_argument('--furigana-file', default=DEFAULT_FURIGANA,
+    ap.add_argument('--dict-file', default=jmdict.DEFAULT_DICT,
+                    help='JMdict JSON path (default: $JMDICT_JSON or %(default)s)')
+    ap.add_argument('--furigana-file', default=jmdict.DEFAULT_FURIGANA,
                     help='JmdictFurigana.txt path (default: $JMDICT_FURIGANA or %(default)s)')
     args = ap.parse_args()
 
-    init(args.furigana_file)
+    init(args.furigana_file, args.dict_file)
     tpl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'template.html')
     with open(tpl_path, encoding='utf-8') as f:
         tpl = f.read()

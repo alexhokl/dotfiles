@@ -13,7 +13,7 @@ Before doing anything, check whether a `<system-reminder>` block indicating Plan
 
 - Do NOT write the HTML file.
 - Instead, show the annotation in chat (full sentence with readings, a Markdown word table, and the translation for each sentence).
-- Reading input files and querying jisho.org is allowed.
+- Reading input files and querying the local dictionary (`scripts/jmdict.py`) is allowed.
 
 ## 1. Input
 
@@ -58,14 +58,31 @@ Tell the user the final path when done.
 
 Demonstrative adnominals (この, その, あの, どの) are classed as `pronoun`.
 
-### Verifying with jisho.org
-When a word type or a kanji reading is in doubt (ambiguous POS such as words that are both noun and adverb, rare kanji, unusual readings), use `webfetch` on:
+### Verifying with the local dictionary (offline)
+Do dictionary work locally; do not use the internet for lookups. When a word type, dictionary form or kanji reading is in doubt (ambiguous POS such as words that are both noun and adverb, rare kanji, unusual readings, unfamiliar conjugations), query the bundled stdlib-only script, a port of the `nvim-jmdict` Neovim plugin:
 
 ```
-https://jisho.org/api/v1/search/words?keyword=<url-encoded word or dictionary form>
+python3 <skill-dir>/scripts/jmdict.py WORD [WORD ...]
 ```
 
-Use `data[0].japanese[].reading` for readings and `data[0].senses[].parts_of_speech` for word types; pick the sense matching the sentence context. Do NOT query every word — only uncertain ones. If jisho.org is unreachable or returns nothing, proceed with your best judgement and add the `uncertain` class to that word's Type cell (renders a red "?").
+- Pass all uncertain words in **one** call. Conjugated verbs and い-adjectives are deinflected (`書かせられる` → `書く`, `高くなかった` → `高い`, `勉強しました` → `勉強` with `vs`).
+- Output is one JSON line per word: `dictionary_form` (lemma(s) matched), `entries[].kanji`, `entries[].kana` (readings), `entries[].senses[].pos` and `.gloss`. `--limit N` changes the number of entries (default 5; `total` gives the full count).
+- `pos` uses JMdict codes: `n` noun, `pn` pronoun, `v1` ichidan verb, `v5*` godan verb, `vs`/`vs-i` する verb, `vk` くる, `adj-i` い-adjective, `adj-na` な-adjective, `adj-pn` adnominal, `adv` adverb, `prt` particle, `conj` conjunction, `int` interjection, `ctr` counter, `pref`/`suf` affix, `aux-v` auxiliary verb, `exp` expression.
+- Pick the sense matching the sentence context. Do NOT query every word — only uncertain ones.
+- Per-kanji furigana split for a word and its reading (from JmdictFurigana):
+
+  ```
+  python3 <skill-dir>/scripts/jmdict.py --furigana 食べる たべる 今日 きょう
+  ```
+
+  `segments` is a list of `[text, reading or null]`.
+
+Data files (no download at lookup time):
+
+- JMdict JSON: `--dict-file`, else `$JMDICT_JSON`, else `~/.local/share/nvim/jmdict.json` (the `nvim-jmdict` default). If missing, the script exits with code 2; tell the user to create it with the `jmdict-to-json` skill (`jmdict-to-json download && jmdict-to-json convert -i jmdict.gz`). The first lookup builds an index cache in `~/.cache/create-annotated-japanese-sentences/` (a few seconds); later lookups load it and it is rebuilt when the dictionary is newer.
+- JmdictFurigana: `--furigana-file`, else `$JMDICT_FURIGANA`, else `~/.local/share/nvim/JmdictFurigana.txt`. Optional; without it, splits fall back to regex alignment.
+
+If the dictionary has no match, or the JMdict JSON is missing, proceed with your best judgement and add the `uncertain` class to that word's Type cell (renders a red "?"). Only fall back to `webfetch` on `https://jisho.org/api/v1/search/words?keyword=<url-encoded word>` if the dictionary is missing **and** the user asks for online verification.
 
 ### Furigana
 - Annotate **every kanji**, including common ones, with hiragana using `<ruby>`.
@@ -123,18 +140,19 @@ Homebrew/system Python on macOS blocks global `pip install` (PEP 668), so use a 
 
 ```
 python3 -m venv ~/.venvs/annotate-ja
-~/.venvs/annotate-ja/bin/pip install fugashi unidic-lite jamdict jamdict-data
+~/.venvs/annotate-ja/bin/pip install fugashi unidic-lite
 ```
 
 Then run the script with `~/.venvs/annotate-ja/bin/python`.
 
-- `JmdictFurigana.txt` supplies per-kanji furigana. Path: `--furigana-file`, else `$JMDICT_FURIGANA`, else `~/.local/share/nvim/JmdictFurigana.txt` (used by the `nvim-kanji-to-hiragana` plugin). Download from https://github.com/Doublevil/JmdictFurigana/releases. Optional: if missing, the script warns and falls back to regex alignment.
+- Glosses come from the same local JMdict JSON as `scripts/jmdict.py` (`--dict-file`, else `$JMDICT_JSON`, else `~/.local/share/nvim/jmdict.json`). If missing, the script warns and glosses are empty.
+- `JmdictFurigana.txt` supplies per-kanji furigana. Path: `--furigana-file`, else `$JMDICT_FURIGANA`, else `~/.local/share/nvim/JmdictFurigana.txt` (used by the `nvim-kanji-to-hiragana` plugin). Download once from https://github.com/Doublevil/JmdictFurigana/releases. Optional: if missing, the script warns and falls back to regex alignment.
 - Gotcha: a stub `unidic` package can shadow `unidic-lite`, so the default `fugashi.Tagger()` fails with "no such file: mecabrc". The script avoids this with `fugashi.GenericTagger('-r /dev/null -d ' + unidic_lite.DICDIR)`.
 
 ### Running
 
 ```
-~/.venvs/annotate-ja/bin/python <skill-dir>/scripts/annotate.py FILE.md [FILE2.md ...] [--out-dir DIR] [--trans-dir DIR] [--furigana-file PATH]
+~/.venvs/annotate-ja/bin/python <skill-dir>/scripts/annotate.py FILE.md [FILE2.md ...] [--out-dir DIR] [--trans-dir DIR] [--furigana-file PATH] [--dict-file PATH]
 ```
 
 Writes `<name>.html` next to each input (or in `--out-dir`) using `template.html`, dumps `<trans-dir>/sent/<name>.txt` (lines `N<TAB>sentence`) for translators, and reads translations from `<trans-dir>/trans/<name>.txt`. Default `--trans-dir` is `.annotate`.
@@ -145,7 +163,7 @@ Writes `<name>.html` next to each input (or in `--out-dir`) using `template.html
 - Tokenises with MeCab (UniDic). A verb or い-adjective absorbs following auxiliaries and the て form; a な-adjective absorbs な/に; numbers merge with counters. Compound nouns are not merged.
 - Maps UniDic parts of speech to the CSS classes above. Uses the Adnominal type (ある, そんな) from section 3.
 - Furigana: JmdictFurigana first, then regex alignment of kanji runs against the UniDic reading.
-- Glosses: `jamdict` lookup of the dictionary form (exact match and part-of-speech match preferred, first sense). Particles/auxiliaries use a built-in gloss table. Verb/adjective glosses get a form suffix such as "(polite, past)". Content words with no gloss get the `uncertain` class.
+- Glosses: local JMdict lookup of the dictionary form via `scripts/jmdict.py` (exact match, then deinflection; part-of-speech match preferred, first matching sense). Particles/auxiliaries use a built-in gloss table. Verb/adjective glosses get a form suffix such as "(polite, past)". Content words with no gloss get the `uncertain` class.
 
 ### Translations (cannot be automated)
 
