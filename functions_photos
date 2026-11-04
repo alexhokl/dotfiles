@@ -1,0 +1,149 @@
+#!/bin/bash
+
+function _photos_check_dependencies() {
+	if [ -z "$(which photos)" ]; then
+		echo "photos has not been installed"
+		return 1
+	fi
+	if [ -z "$(which gum)" ]; then
+		echo "gum has not been installed"
+		return 1
+	fi
+	if [ -z "$(which jq)" ]; then
+		echo "jq has not been installed"
+		return 1
+	fi
+}
+
+# Prints the directory (prefix) selected from all directories in the bucket.
+function _photos_select_directory() {
+	photos list directories --recursive \
+		| grep -v '^No directories found$' \
+		| gum filter --limit 1 --placeholder "Select directory..."
+}
+
+# Prints the object IDs of all photos directly under the given prefix,
+# following pagination.
+function _photos_list_photos() {
+	local prefix=$1
+	local page_token="" response
+
+	# the prefix must end with a slash to list photos in the directory
+	if [ -n "$prefix" ] && [ "${prefix: -1}" != "/" ]; then
+		prefix="$prefix/"
+	fi
+
+	while true; do
+		if [ -z "$page_token" ]; then
+			response=$(photos list photos --prefix "$prefix" --format json) || return 1
+		else
+			response=$(photos list photos --prefix "$prefix" --format json --page-token "$page_token") || return 1
+		fi
+		echo "$response" | jq -r 'if type == "object" then .photos[] else .[] end'
+		page_token=$(echo "$response" | jq -r 'if type == "object" then .next_page_token // "" else "" end')
+		if [ -z "$page_token" ]; then
+			break
+		fi
+	done
+}
+
+# Prints the object ID of a photo selected after selecting a directory.
+function _photos_select_photo() {
+	local directory
+
+	directory=$(_photos_select_directory)
+	if [ -z "$directory" ]; then
+		echo "No directory selected" >&2
+		return 1
+	fi
+	_photos_list_photos "$directory" | gum filter --limit 1 --placeholder "Select photo..."
+}
+
+# Copies the object ID of a photo to clipboard.
+# Usage: photos_list
+# Dependencies: photos, gum, jq, pbcopy
+# Description: Prompts the user to select a directory in the bucket, then a
+#              photo in that directory, and copies its object ID to clipboard.
+function photos_list() {
+	_photos_check_dependencies || return 1
+
+	local object_id
+
+	object_id=$(_photos_select_photo) || return 1
+	if [ -z "$object_id" ]; then
+		echo "No photo selected"
+		return 1
+	fi
+	printf '%s' "$object_id" | pbcopy
+	echo "Copied $object_id to clipboard"
+}
+
+# Downloads a photo to the current directory.
+# Usage: photos_download
+# Dependencies: photos, gum, jq
+# Description: Prompts the user to select a directory in the bucket, then a
+#              photo in that directory, and downloads it to the current
+#              directory, asking before overwriting an existing file.
+function photos_download() {
+	_photos_check_dependencies || return 1
+
+	local object_id file
+
+	object_id=$(_photos_select_photo) || return 1
+	if [ -z "$object_id" ]; then
+		echo "No photo selected"
+		return 1
+	fi
+	file=$(basename "$object_id")
+	if [ -e "$file" ] && ! gum confirm "$file already exists. Overwrite?"; then
+		return 1
+	fi
+	photos download-streaming --object-id "$object_id" --file "$file"
+}
+
+# Uploads files in the current directory to the bucket.
+# Usage: photos_upload
+# Dependencies: photos, gum, jq, find
+# Description: Prompts the user to select files in the current directory (not
+#              subdirectories), then a destination directory, either selected
+#              from the existing directories or typed in (it does not need to
+#              exist), and uploads the files to it.
+function photos_upload() {
+	_photos_check_dependencies || return 1
+
+	local files destination_type destination file
+
+	mapfile -t files < <(find . -maxdepth 1 -type f ! -name '.*' \
+		| sed 's|^\./||' \
+		| sort \
+		| gum filter --no-limit --placeholder "Select files to upload...")
+	if [ ${#files[@]} -eq 0 ]; then
+		echo "No file selected"
+		return 1
+	fi
+
+	destination_type=$(gum choose "Select existing directory" "Type a path")
+	case "$destination_type" in
+		"Select existing directory")
+			destination=$(_photos_select_directory)
+			if [ -z "$destination" ]; then
+				echo "No directory selected"
+				return 1
+			fi
+			;;
+		"Type a path")
+			destination=$(gum input --placeholder "Destination path (e.g. 2024/vacation, empty for root)")
+			;;
+		*)
+			return 1
+			;;
+	esac
+
+	# strip leading and trailing slashes
+	destination="${destination#"${destination%%[!/]*}"}"
+	destination="${destination%"${destination##*[!/]}"}"
+
+	for file in "${files[@]}"; do
+		photos upload-streaming --file "$file" --object-id "${destination:+$destination/}$file"
+	done
+}
