@@ -78,27 +78,38 @@ function photos_list() {
 	echo "Copied $object_id to clipboard"
 }
 
-# Downloads a photo to the current directory.
+# Downloads photos to the current directory.
 # Usage: photos_download
 # Dependencies: photos, gum, jq
-# Description: Prompts the user to select a directory in the bucket, then a
-#              photo in that directory, and downloads it to the current
-#              directory, asking before overwriting an existing file.
+# Description: Prompts the user to select a directory in the bucket, then one
+#              or more photos in that directory, and downloads them to the
+#              current directory, asking before overwriting each existing
+#              file.
 function photos_download() {
 	_photos_check_dependencies || return 1
 
-	local object_id file
+	local directory object_ids object_id file
 
-	object_id=$(_photos_select_photo) || return 1
-	if [ -z "$object_id" ]; then
+	directory=$(_photos_select_directory)
+	if [ -z "$directory" ]; then
+		echo "No directory selected"
+		return 1
+	fi
+
+	mapfile -t object_ids < <(_photos_list_photos "$directory" \
+		| gum filter --no-limit --placeholder "Select photos to download...")
+	if [ ${#object_ids[@]} -eq 0 ]; then
 		echo "No photo selected"
 		return 1
 	fi
-	file=$(basename "$object_id")
-	if [ -e "$file" ] && ! gum confirm "$file already exists. Overwrite?"; then
-		return 1
-	fi
-	photos download-streaming --object-id "$object_id" --file "$file"
+
+	for object_id in "${object_ids[@]}"; do
+		file=$(basename "$object_id")
+		if [ -e "$file" ] && ! gum confirm "$file already exists. Overwrite?"; then
+			continue
+		fi
+		photos download-streaming --object-id "$object_id" --file "$file"
+	done
 }
 
 # Uploads files in the current directory to the bucket.
