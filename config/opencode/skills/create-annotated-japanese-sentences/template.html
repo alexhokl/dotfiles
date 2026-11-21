@@ -100,14 +100,26 @@
 	.badge.affix { background: var(--affix); color: var(--bg); }
 	.badge.adnominal { background: var(--adnominal); color: var(--bg); }
 
+	.say {
+		font: inherit; font-size: 0.85rem;
+		border: 1px solid var(--border); background: var(--header-bg); color: var(--fg);
+		border-radius: 999px; padding: 0.1rem 0.55rem; margin-left: 0.4rem;
+		cursor: pointer; vertical-align: middle;
+	}
+	.say:hover { border-color: var(--muted); }
+	.say.playing { border-color: var(--noun); color: var(--noun); }
+	.say-note { font-size: 0.9rem; color: var(--muted); }
+
 	@media print {
 		body { margin: 0; max-width: none; background: #fff; color: #222; }
 		.full span[title] { border-bottom: none; }
+		.say, .say-note { display: none !important; }
 	}
 </style>
 </head>
 <body>
 <h1>{{TITLE}}</h1>
+<p class="say-note">Press 🔊 to hear each sentence (🐢 plays it slowly).</p>
 
 <div class="legend">
 	<span class="badge noun">Noun</span>
@@ -126,5 +138,63 @@
 
 <!-- SENTENCES -->
 
+<script>
+/* Reads each sentence aloud with the browser's built-in speech (ja-JP voice,
+   Kyoko on macOS when present). Adds a 🔊 and a slow 🐢 button to the
+   heading of every section.sentence, speaking its .full text without furigana. */
+(function () {
+	var voice = null;
+
+	function pickVoice() {
+		var voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+		var ja = voices.filter(function (v) { return /^ja(-|_|$)/i.test(v.lang); });
+		voice = ja.filter(function (v) { return /kyoko/i.test(v.name); })[0] || ja[0] || null;
+	}
+
+	function say(text, rate, btn) {
+		if (!window.speechSynthesis) {
+			alert('This browser has no speech synthesis. Try Safari or Chrome.');
+			return;
+		}
+		speechSynthesis.cancel();
+		var u = new SpeechSynthesisUtterance(text);
+		u.lang = 'ja-JP';
+		if (voice) u.voice = voice;
+		u.rate = rate;
+		btn.classList.add('playing');
+		u.onend = u.onerror = function () { btn.classList.remove('playing'); };
+		speechSynthesis.speak(u);
+	}
+
+	function button(label, aria, text, rate) {
+		var b = document.createElement('button');
+		b.className = 'say';
+		b.type = 'button';
+		b.textContent = label;
+		b.setAttribute('aria-label', aria);
+		b.addEventListener('click', function () { say(text, rate, b); });
+		return b;
+	}
+
+	function init() {
+		pickVoice();
+		if (window.speechSynthesis) speechSynthesis.onvoiceschanged = pickVoice;
+		document.querySelectorAll('section.sentence').forEach(function (sec) {
+			var full = sec.querySelector('.full');
+			var h2 = sec.querySelector('h2');
+			if (!full || !h2) return;
+			var copy = full.cloneNode(true);
+			copy.querySelectorAll('rt, rp').forEach(function (e) { e.remove(); });
+			var text = copy.textContent.replace(/\s+/g, '');
+			if (!text) return;
+			h2.appendChild(button('🔊', 'Play sentence', text, 1));
+			h2.appendChild(button('🐢', 'Play sentence slowly', text, 0.6));
+		});
+	}
+
+	if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+	else init();
+})();
+</script>
 </body>
 </html>

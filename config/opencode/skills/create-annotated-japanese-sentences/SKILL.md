@@ -1,11 +1,11 @@
 ---
 name: create-annotated-japanese-sentences
-description: Use when the user asks to annotate, break down, analyse, or explain Japanese sentences as HTML. Reads Japanese sentences from the prompt or a file and produces a self-contained HTML page with colour-coded word types, furigana on all kanji, per-word English glosses, and a full-sentence translation. Also supports bulk/automated annotation of many files (e.g. dozens of Markdown newsletters) via a bundled script. Trigger keywords including 'annotate Japanese', 'Japanese sentence breakdown', 'furigana', 'word types', 'parts of speech Japanese'.
+description: Use when the user asks to annotate, break down, analyse, or explain Japanese sentences as HTML. Reads Japanese sentences from the prompt or a file and produces a self-contained HTML page with colour-coded word types, furigana on all kanji, per-word English glosses, a full-sentence translation and 🔊/🐢 buttons that read each sentence aloud (browser speech). Also supports bulk/automated annotation of many files (e.g. dozens of Markdown newsletters) via a bundled script. Trigger keywords including 'annotate Japanese', 'Japanese sentence breakdown', 'furigana', 'word types', 'parts of speech Japanese'.
 ---
 
 # create-annotated-japanese-sentences Skill
 
-Produces a study-friendly HTML page for one or more Japanese sentences, built from the bundled `template.html` (in this skill's directory).
+Produces a study-friendly HTML page for one or more Japanese sentences, built from the bundled `template.html` (in this skill's directory). Each sentence heading gets 🔊 (normal speed) and 🐢 (slow) buttons that read the sentence aloud with the browser's built-in Japanese speech (Kyoko on macOS when installed).
 
 ## Plan / Ask Mode (Read-Only)
 
@@ -126,7 +126,7 @@ If the dictionary has no match, or the JMdict JSON is missing, proceed with your
 
 - For an uncertain type, use `<td class="uncertain"><span class="badge ...">...</span></td>`.
 - Keep the spans in `.full` adjacent with no whitespace between them (Japanese has no spaces).
-- Do not add JavaScript or external assets; the file must stay self-contained.
+- The template's inline script adds the 🔊/🐢 buttons to each `section.sentence` heading and speaks the `.full` text without the `<rt>` furigana, so keep the `<h2>` and `.full` structure. Do not add other JavaScript or any external assets; the file must stay self-contained.
 
 4. Write the result to the output path from section 2.
 
