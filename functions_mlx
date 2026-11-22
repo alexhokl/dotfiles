@@ -22,7 +22,25 @@ function mlx_audio_transcribe() {
 		return
 	fi
 
-	model=$(gum input --header "Enter the model" --value="mlx-community/whisper-large-v3-turbo-asr-fp16")
+	# languages: whisper and Qwen3-ASR cover en/ja/zh/yue; SenseVoiceSmall
+	# zh/yue/en/ja/ko; Fun-ASR-Nano zh/en/ja; GLM-ASR-Nano zh/yue/en;
+	# parakeet-tdt_ctc-0.6b-ja ja only; parakeet-tdt-0.6b-v3 en and European;
+	# VibeVoice-ASR long-form with speaker diarisation
+	model=$(printf '%s\n' \
+		mlx-community/whisper-large-v3-turbo-asr-fp16 \
+		mlx-community/whisper-large-v3-asr-fp16 \
+		mlx-community/Qwen3-ASR-1.7B-8bit \
+		mlx-community/Qwen3-ASR-0.6B-8bit \
+		mlx-community/SenseVoiceSmall \
+		mlx-community/Fun-ASR-Nano-2512-8bit \
+		mlx-community/GLM-ASR-Nano-2512-8bit \
+		mlx-community/parakeet-tdt_ctc-0.6b-ja \
+		mlx-community/parakeet-tdt-0.6b-v3 \
+		mlx-community/VibeVoice-ASR-4bit \
+		other | gum filter --limit=1 --header "Select a model...")
+	if [ "$model" = "other" ]; then
+		model=$(gum input --header "Enter the model" --placeholder="mlx-community/...")
+	fi
 	if [ -z "$model" ]; then
 		echo No model entered
 		return
