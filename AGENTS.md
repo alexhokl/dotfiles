@@ -17,9 +17,8 @@ Personal dotfiles (bash, macOS primary, some Linux/i3 leftovers). Installed by s
   `Makefile` (e.g. `config/opencode/opencode.json` ->
   `~/.config/opencode/opencode.json`, `config/claude/settings.json` ->
   `~/.claude/settings.json`).
-- Agent skills live in `config/opencode/skills/<name>/SKILL.md`; each dir is
-  symlinked individually into both `~/.agents/skills/` and `~/.claude/skills/`.
-  Re-run `make dotfiles` after adding a skill.
+- Agent skills are not kept here; they live in repository `skills`
+  (`~/git/skills`) and are installed with `task link` there.
 - Bash completions go in `config/bash_completion.d/`.
 - `gitignore` (no dot) is hard-linked to `~/.gitignore` as the global gitignore;
   `.gitignore` is this repo's own.
