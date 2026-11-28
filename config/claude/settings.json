@@ -2,7 +2,7 @@
   "permissions": {
     "defaultMode": "plan"
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "PostToolUse": [
       {
@@ -38,5 +38,6 @@
       }
     ]
   },
-  "enabledPlugins": {}
+  "enabledPlugins": {},
+  "awaySummaryEnabled": false
 }
